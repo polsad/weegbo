@@ -1,0 +1,15 @@
+<FilesMatch "\.(tpl|log)$">
+    deny from all
+</FilesMatch>
+
+Options -Indexes
+
+RewriteEngine on
+Options +FollowSymlinks
+RewriteBase /
+
+RewriteCond %{REQUEST_FILENAME} !-d  
+RewriteCond %{REQUEST_FILENAME} !-f
+
+RewriteRule ^([^.]*)$ /index.php?$1 [L]
+RewriteRule ^images/captcha.jpg$ /index.php?captcha [L]
