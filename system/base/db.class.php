@@ -195,6 +195,18 @@ class Db {
     }
 
     /**
+     * Returns the number of rows affected by the last DELETE, INSERT, or UPDATE
+     * http://www.php.net/manual/en/pdostatement.rowcount.php
+     *
+     * @access public
+     * @return int
+     */
+    public static function rowCount() {
+        $result = (int) self::$_sth->rowCount();
+        return $result;
+    }    
+    
+    /**
      * Start transaction
      *
      * @access public
