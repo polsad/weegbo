@@ -4,7 +4,7 @@
  *
  * @author Dmitry Avseyenko <polsad@gmail.com>
  * @package system.controller
- * @copyright Copyright &copy; 2008-2011 Inspirativ
+ * @copyright Copyright &copy; 2008-2012 Inspirativ
  * @license http://weegbo.com/license/
  * @since 0.8
  */
