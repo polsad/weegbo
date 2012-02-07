@@ -18,19 +18,23 @@ class Db {
      */
     private static $_instance = NULL;
     /**
-     * @var object $_pdo PDO object
+     * @var array $_pdo PDO objects
      */
-    private static $_pdo = NULL;
+    private static $_pdo = array();
     /**
-     * @var object $_sth PDOStatement object
+     * @var array $_sth PDOStatement objects
      */
-    private static $_sth = NULL;
+    private static $_sth = array();
     /**
-     * @var string $_prefix table prefix
+     * @var object $_connect active connection
+     */    
+    private static $_connect = NULL;
+    /**
+     * @var array $_prefix table prefixes
      */
-    private static $_prefix = '';
+    private static $_prefix = array();
     /**
-     * @var array $_statistic db statistic
+     * @var int $_time 
      */
     private static $_time;
     /**
@@ -54,24 +58,36 @@ class Db {
      * Connect to database
      *
      * @access public
+     * @param string $connect connection name in daatabase connfig
      * @return void
      */
-    public static function connect($server) {
+    public static function connect($connect) {
         try {
-            self::$_pdo = new PDO(Config::get("database/{$server}/driver").':host='.Config::get("database/{$server}/host").';dbname='.Config::get("database/{$server}/db").';charset='.Config::get("database/{$server}/charset"), Config::get("database/{$server}/user"), Config::get("database/{$server}/pass"));
+            self::$_pdo[self::$_connect] = new PDO(Config::get("database/{$connect}/driver").':host='.Config::get("database/{$connect}/host").';dbname='.Config::get("database/{$connect}/db").';charset='.Config::get("database/{$connect}/charset"), Config::get("database/{$connect}/user"), Config::get("database/{$connect}/pass"));
             if (Config::get('debug/debug')) {
-                self::$_pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                self::$_pdo[self::$_connect]->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             }
-            self::$_prefix = Config::get("database/{$server}/prefix");
+            self::$_prefix[self::$_connect] = Config::get("database/{$connect}/prefix");
             if (Config::get('debug/profiler')) {
-                Profiler::add("Db connected to {$server}", 'db-connect');
+                Profiler::add("Db connected to {$connect}", 'db-connect');
             }
+            self::setActiveConnect($connect);
         }
         catch (PDOException $e) {
             throw new CException($e->getMessage(), 1, 500);
         }
     }
-
+    
+    public static function setActiveConnect($connect) {
+        self::$_connect = $connect;
+    }    
+    
+    public static function closeConnect() {
+        self::$_pdo[self::$_connect] = NULL;
+        self::$_sth[self::$_connect] = NULL;
+        self::$_prefix[self::$_connect] = NULL;
+    }
+    
     /**
      * Execute select query and return the result.
      *
@@ -82,7 +98,7 @@ class Db {
         if (func_num_args() >= 1) {
             $args = func_get_args();
             $result = self::executeQuery($args);
-            $result = self::$_sth->fetchAll(PDO::FETCH_ASSOC);
+            $result = self::$_sth[self::$_connect]->fetchAll(PDO::FETCH_ASSOC);
             if (preg_match('/ARRAY_KEY/six', self::$_query)) {
                 $result = self::transformResult($result, 'ARRAY_KEY');
             }
@@ -104,9 +120,9 @@ class Db {
         if (func_num_args() >= 1) {
             $args = func_get_args();
             $result = self::executeQuery($args);
-            $result = self::$_sth->fetch(PDO::FETCH_ASSOC);
+            $result = self::$_sth[self::$_connect]->fetch(PDO::FETCH_ASSOC);
             // http://www.php.net/manual/en/pdostatement.fetch.php#74262
-            self::$_sth->closeCursor();
+            self::$_sth[self::$_connect]->closeCursor();
             if (preg_match('/ARRAY_KEY/six', self::$_query)) {
                 $result = self::transformResult($result, 'ARRAY_KEY');
             }
@@ -128,7 +144,7 @@ class Db {
         if (func_num_args() >= 1) {
             $args = func_get_args();
             $result = self::executeQuery($args);
-            $result = self::$_sth->fetchAll();
+            $result = self::$_sth[self::$_connect]->fetchAll();
             $buff = array();
             $size = sizeof($result);
             if (preg_match('/ARRAY_KEY/six', self::$_query)) {
@@ -159,9 +175,9 @@ class Db {
         if (func_num_args() >= 1) {
             $args = func_get_args();
             $result = self::executeQuery($args);
-            $result = self::$_sth->fetch(PDO::FETCH_NUM);
+            $result = self::$_sth[self::$_connect]->fetch(PDO::FETCH_NUM);
             // http://www.php.net/manual/en/pdostatement.fetch.php#74262
-            self::$_sth->closeCursor();
+            self::$_sth[self::$_connect]->closeCursor();
             self::cleanQueryParams();
             return $result[0];
         }
@@ -181,7 +197,7 @@ class Db {
             $args = func_get_args();
             $result = self::executeQuery($args);
             if (preg_match('/^\s* INSERT \s+/six', self::$_query)) {
-                $result = self::$_pdo->lastInsertId();
+                $result = self::$_pdo[self::$_connect]->lastInsertId();
             }
             if (preg_match('/ARRAY_KEY/six', self::$_query)) {
                 $result = self::transformResult($result, 'ARRAY_KEY');
@@ -202,7 +218,7 @@ class Db {
      * @return int
      */
     public static function rowCount() {
-        $result = (int) self::$_sth->rowCount();
+        $result = (int) self::$_sth[self::$_connect]->rowCount();
         return $result;
     }    
     
@@ -213,7 +229,7 @@ class Db {
      * @return bool
      */
     public static function transaction() {
-        return self::$_pdo->beginTransaction();
+        return self::$_pdo[self::$_connect]->beginTransaction();
     }
 
     /**
@@ -223,7 +239,7 @@ class Db {
      * @return bool
      */
     public static function commit() {
-        return self::$_pdo->commit();
+        return self::$_pdo[self::$_connect]->commit();
     }
 
     /**
@@ -233,7 +249,7 @@ class Db {
      * @return bool
      */
     public static function rollback() {
-        return self::$_pdo->rollBack();
+        return self::$_pdo[self::$_connect]->rollBack();
     }
 
     /**
@@ -245,7 +261,7 @@ class Db {
      */
     private static function prepareQuery($args) {
         self::$_query = $args[0];
-        self::$_query = str_replace('?_', self::$_prefix, self::$_query);
+        self::$_query = str_replace('?_', self::$_prefix[self::$_connect], self::$_query);
         self::$_query_args = array_slice($args, 1);
 
         $regexp = '{(\?)( [dsafn\#] ?)}sx';
@@ -262,38 +278,38 @@ class Db {
     private static function executeQuery($args) {
         self::queryRuntime('start');
         self::prepareQuery($args);
-        self::$_sth = self::$_pdo->prepare(self::$_query);
+        self::$_sth[self::$_connect] = self::$_pdo[self::$_connect]->prepare(self::$_query);
         $size = sizeof(self::$_query_params);
         $index = 1;
         for ($i = 0; $i < $size; $i++) {
             switch (self::$_query_params[$i][1]) {
                 case 'int':
                     self::$_query_params[$i][0] = (int) self::$_query_params[$i][0];
-                    self::$_sth->bindValue($index, self::$_query_params[$i][0], PDO::PARAM_INT);
+                    self::$_sth[self::$_connect]->bindValue($index, self::$_query_params[$i][0], PDO::PARAM_INT);
                     break;
                 case 'float':
                     self::$_query_params[$i][0] = (float) self::$_query_params[$i][0];
-                    self::$_sth->bindValue($index, self::$_query_params[$i][0]);
+                    self::$_sth[self::$_connect]->bindValue($index, self::$_query_params[$i][0]);
                     break;
                 case 'string':
                     self::$_query_params[$i][0] = (string) self::$_query_params[$i][0];
                     if (get_magic_quotes_gpc()) {
                         self::$_query_params[$i][0] = stripcslashes(self::$_query_params[$i][0]);
                     }
-                    self::$_sth->bindValue($index, self::$_query_params[$i][0], PDO::PARAM_STR);
+                    self::$_sth[self::$_connect]->bindValue($index, self::$_query_params[$i][0], PDO::PARAM_STR);
                     break;
                 case 'default':
                     self::$_query_params[$i][0] = self::$_query_params[$i][0];
                     if (get_magic_quotes_gpc()) {
                         self::$_query_params[$i][0] = stripcslashes(self::$_query_params[$i][0]);
                     }
-                    self::$_sth->bindValue($index, self::$_query_params[$i][0]);
+                    self::$_sth[self::$_connect]->bindValue($index, self::$_query_params[$i][0]);
                     break;
             }
             $index++;
         }
         try {
-            $result = self::$_sth->execute();
+            $result = self::$_sth[self::$_connect]->execute();
         }
         catch (PDOException $e) {
             throw new CException($e->getMessage(), 1, 500);
@@ -391,7 +407,7 @@ class Db {
      */
     private static function escape($string, $isIdent = false) {
         if (!$isIdent) {
-            return self::$_pdo->quote($string);
+            return self::$_pdo[self::$_connect]->quote($string);
         }
         else {
             return "`".str_replace('`', '``', $string)."`";
