@@ -25,7 +25,7 @@ class Loader {
     public static function controller() {
         $args = func_get_args();
         $controller = isset($args[0]) ? strtolower($args[0]) : NULL;
-        $name = isset($args[1]) ? $args[1] : $model;
+        $name = isset($args[1]) ? $args[1] : $controller;
         $args = array_slice($args, 2);
 
         if (file_exists(Config::get('path/controllers').$controller.'.class.php')) {
@@ -88,7 +88,7 @@ class Loader {
             throw new CException("Extension class {$class} in file {$extension}.class.php not found", 0, 500);
         }
     }
-    
+
     /**
      * Static method for loading helper
      *
@@ -200,7 +200,10 @@ class Loader {
      */
     public static function db() {
         $args = func_get_args();
-        $server = isset($args[0]) ? $args[0] : NULL;
+        $servers = isset($args[0]) ? $args[0] : array();
+        $active = isset($args[1]) ? $args[1] : '';
+
+        //$size = sizeof($server, $mode)
         /**
          * Check config
          */
@@ -211,11 +214,24 @@ class Loader {
         /**
          * Check server config
          */
-        if (Config::get('database/'.$server, true) == NULL) {
-            throw new CException("DB config {$server} not found", 0, 500);
+        foreach ($servers as $server) {
+            if (Config::get('database/'.$server, true) == NULL) {
+                throw new CException("DB config {$server} not found", 0, 500);
+            }
         }
         $db = Db::getInstance();
-        $db->connect($server);
+        /**
+         * Connect to servers 
+         */
+        foreach ($servers as $server) {
+            $db->connect($server);
+        }        
+        /**
+         * Set active connect 
+         */
+        if ($active != '') {
+            $db->setActiveConnect($active);
+        }
         Registry::set('db', $db);
     }
 

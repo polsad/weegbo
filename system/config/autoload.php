@@ -14,6 +14,7 @@ return array(
      * Base components (db, view)
      */
     'base' => array(
+        // 'db' => array(array('master')),
         'view'
     ),
     /**

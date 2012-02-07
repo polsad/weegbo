@@ -17,38 +17,47 @@ class Db {
      * @var static property to hold singleton instance
      */
     private static $_instance = NULL;
+
     /**
      * @var array $_pdo PDO objects
      */
     private static $_pdo = array();
+
     /**
      * @var array $_sth PDOStatement objects
      */
     private static $_sth = array();
+
     /**
      * @var object $_connect active connection
-     */    
+     */
     private static $_connect = NULL;
+
     /**
      * @var array $_prefix table prefixes
      */
     private static $_prefix = array();
+
     /**
      * @var int $_time 
      */
     private static $_time;
+
     /**
      * @var string $_query query
      */
     private static $_query = NULL;
+
     /**
      * @var array $_query_args query arguments
      */
     private static $_query_args = array();
+
     /**
      * @var array $_query_params query parametrs
      */
     private static $_query_params = array();
+
     /**
      * @var bool $_query_transform
      */
@@ -58,16 +67,16 @@ class Db {
      * Connect to database
      *
      * @access public
-     * @param string $connect connection name in daatabase connfig
+     * @param string $connect connection name in daatabase config
      * @return void
      */
     public static function connect($connect) {
         try {
-            self::$_pdo[self::$_connect] = new PDO(Config::get("database/{$connect}/driver").':host='.Config::get("database/{$connect}/host").';dbname='.Config::get("database/{$connect}/db").';charset='.Config::get("database/{$connect}/charset"), Config::get("database/{$connect}/user"), Config::get("database/{$connect}/pass"));
+            self::$_pdo[$connect] = new PDO(Config::get("database/{$connect}/driver").':host='.Config::get("database/{$connect}/host").';dbname='.Config::get("database/{$connect}/db").';charset='.Config::get("database/{$connect}/charset"), Config::get("database/{$connect}/user"), Config::get("database/{$connect}/pass"));
             if (Config::get('debug/debug')) {
-                self::$_pdo[self::$_connect]->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                self::$_pdo[$connect]->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             }
-            self::$_prefix[self::$_connect] = Config::get("database/{$connect}/prefix");
+            self::$_prefix[$connect] = Config::get("database/{$connect}/prefix");
             if (Config::get('debug/profiler')) {
                 Profiler::add("Db connected to {$connect}", 'db-connect');
             }
@@ -77,17 +86,53 @@ class Db {
             throw new CException($e->getMessage(), 1, 500);
         }
     }
-    
+
+    /**
+     * Set active connection, if connect not found, method will generate CException
+     * 
+     * @access public
+     * @param type $connect connection name
+     * @return void
+     */
     public static function setActiveConnect($connect) {
+        if (array_key_exists($connect, self::$_pdo) === false) {
+            throw new CException("Connect {$connect} not found.", 0, 500);
+        }
         self::$_connect = $connect;
-    }    
-    
-    public static function closeConnect() {
-        self::$_pdo[self::$_connect] = NULL;
-        self::$_sth[self::$_connect] = NULL;
-        self::$_prefix[self::$_connect] = NULL;
+        if (Config::get('debug/profiler')) {
+            Profiler::add("Set active connect {$connect}", 'db-active-connect');
+        }
     }
-    
+
+    /**
+     * Chech active connection, if connect not found, method will generate CException
+     * 
+     * @access public
+     * @return void
+     */
+    public static function checkActiveConnect() {
+        if (self::$_connect === NULL) {
+            throw new CException("Active connect not found", 0, 500);
+        }
+    }
+
+    /**
+     * Close connection
+     * 
+     * @access public
+     * @param type $connect connection name
+     * @return void
+     */
+    public static function closeConnect($connect) {
+        unset(self::$_pdo[$connect], self::$_sth[$connect], self::$_prefix[$connect]);
+        if (self::$_connect == $connect) {
+            self::$_connect == NULL;
+        }
+        if (Config::get('debug/profiler')) {
+            Profiler::add("Close connect to {$connect} server", 'db-close-connect');
+        }
+    }
+
     /**
      * Execute select query and return the result.
      *
@@ -95,6 +140,7 @@ class Db {
      * @return mixed array or NULL
      */
     public static function select() {
+        self::checkActiveConnect();
         if (func_num_args() >= 1) {
             $args = func_get_args();
             $result = self::executeQuery($args);
@@ -117,6 +163,7 @@ class Db {
      * @return mixed array or NULL
      */
     public static function selectRow() {
+        self::checkActiveConnect();
         if (func_num_args() >= 1) {
             $args = func_get_args();
             $result = self::executeQuery($args);
@@ -141,6 +188,7 @@ class Db {
      * @return mixed array or NULL
      */
     public static function selectCol() {
+        self::checkActiveConnect();
         if (func_num_args() >= 1) {
             $args = func_get_args();
             $result = self::executeQuery($args);
@@ -172,6 +220,7 @@ class Db {
      * @return mixed or NULL
      */
     public static function selectCell() {
+        self::checkActiveConnect();
         if (func_num_args() >= 1) {
             $args = func_get_args();
             $result = self::executeQuery($args);
@@ -193,6 +242,7 @@ class Db {
      * @return mixed int or NULL
      */
     public static function query() {
+        self::checkActiveConnect();
         if (func_num_args() >= 1) {
             $args = func_get_args();
             $result = self::executeQuery($args);
@@ -220,8 +270,8 @@ class Db {
     public static function rowCount() {
         $result = (int) self::$_sth[self::$_connect]->rowCount();
         return $result;
-    }    
-    
+    }
+
     /**
      * Start transaction
      *
@@ -229,6 +279,7 @@ class Db {
      * @return bool
      */
     public static function transaction() {
+        self::checkActiveConnect();
         return self::$_pdo[self::$_connect]->beginTransaction();
     }
 
@@ -239,6 +290,7 @@ class Db {
      * @return bool
      */
     public static function commit() {
+        self::checkActiveConnect();
         return self::$_pdo[self::$_connect]->commit();
     }
 
@@ -249,6 +301,7 @@ class Db {
      * @return bool
      */
     public static function rollback() {
+        self::checkActiveConnect();
         return self::$_pdo[self::$_connect]->rollBack();
     }
 
