@@ -9,7 +9,7 @@
  *
  * @author Dmitry Avseyenko <polsad@gmail.com>
  * @link http://weegbo.com/
- * @copyright Copyright &copy; 2008-2012 Inspirativ
+ * @copyright Copyright &copy; 2008-2011 Inspirativ
  * @license http://weegbo.com/license/
  * @package system.base
  * @since 0.8
@@ -19,40 +19,37 @@ class Base {
      * Create application.
      *
      * @access public
-     * @param string $path_app - path to application folder
+     * @param string $config - config
      * @return void
      */
-    public static function createWebApplication($path_app) {
-        /**
-         * Define path application, PATH_ROOT and PATH_BASE defined in file index.php.
-         */
-        define('PATH_APP', $path_app);
+    public static function createWebApplication($config) {
         /**
          * Include config class and load application configuration.
          */
-        require_once(PATH_BASE.'config.class.php');
+        require_once($config['path']['base'].'config.class.php');
+        Config::load($config, 'array');
         Config::load('config');
         /**
          * Enable profiler
          */
         if (Config::get('debug/profiler')) {
-            require_once(PATH_BASE.'profiler.class.php'); 
+            require_once(Config::get('path/base').'profiler.class.php'); 
         }
         /**
          * Include static classes exception and error, set error handler Error::codeError method.
          */
-        require_once(PATH_BASE.'exception.class.php');
-        require_once(PATH_BASE.'error.class.php');
+        require_once(Config::get('path/base').'exception.class.php');
+        require_once(Config::get('path/base').'error.class.php');
         set_error_handler(create_function('$c, $m, $f, $l', 'Error::errorHandler($m, $c, $f, $l);'), E_ALL ^ E_NOTICE);
         /**
          * Include class Register.
          */
-        require_once(PATH_BASE.'registry.class.php');
+        require_once(Config::get('path/base').'registry.class.php');
         /**
          * Include class Loader and Input, create loader, input and config instance.
          */
-        require_once(PATH_BASE.'loader.class.php');
-        require_once(PATH_BASE.'input.class.php');
+        require_once(Config::get('path/base').'loader.class.php');
+        require_once(Config::get('path/base').'input.class.php');
         Registry::set('load', Loader::getInstance());
         Registry::set('input', Input::getInstance());
         Registry::set('config', Config::getInstance());

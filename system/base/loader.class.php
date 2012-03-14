@@ -4,7 +4,7 @@
  *
  * @author Dmitry Avseyenko <polsad@gmail.com>
  * @link http://weegbo.com/
- * @copyright Copyright &copy; 2008-2012 Inspirativ
+ * @copyright Copyright &copy; 2008-2011 Inspirativ
  * @license http://weegbo.com/license/
  * @package system.base
  * @since 0.8
@@ -25,7 +25,7 @@ class Loader {
     public static function controller() {
         $args = func_get_args();
         $controller = isset($args[0]) ? strtolower($args[0]) : NULL;
-        $name = isset($args[1]) ? $args[1] : $controller;
+        $name = isset($args[1]) ? $args[1] : $model;
         $args = array_slice($args, 2);
 
         if (file_exists(Config::get('path/controllers').$controller.'.class.php')) {
@@ -88,7 +88,7 @@ class Loader {
             throw new CException("Extension class {$class} in file {$extension}.class.php not found", 0, 500);
         }
     }
-
+    
     /**
      * Static method for loading helper
      *
@@ -200,38 +200,22 @@ class Loader {
      */
     public static function db() {
         $args = func_get_args();
-        $servers = isset($args[0]) ? $args[0] : array();
-        $active = isset($args[1]) ? $args[1] : '';
-
-        //$size = sizeof($server, $mode)
+        $server = isset($args[0]) ? $args[0] : NULL;
         /**
          * Check config
          */
         if (Config::get('database', true) == NULL) {
             Config::load('database');
-            require_once(PATH_BASE.'db.class.php');
+            require_once(Config::get('path/base').'db.class.php');
         }
         /**
          * Check server config
          */
-        foreach ($servers as $server) {
-            if (Config::get('database/'.$server, true) == NULL) {
-                throw new CException("DB config {$server} not found", 0, 500);
-            }
+        if (Config::get('database/'.$server, true) == NULL) {
+            throw new CException("DB config {$server} not found", 0, 500);
         }
         $db = Db::getInstance();
-        /**
-         * Connect to servers 
-         */
-        foreach ($servers as $server) {
-            $db->connect($server);
-        }        
-        /**
-         * Set active connect 
-         */
-        if ($active != '') {
-            $db->setActiveConnect($active);
-        }
+        $db->connect($server);
         Registry::set('db', $db);
     }
 
@@ -242,7 +226,7 @@ class Loader {
      * @return void
      */
     public static function view() {
-        require_once(PATH_BASE.'view.class.php');
+        require_once(Config::get('path/base').'view.class.php');
         Registry::set('view', new View);
     }
 

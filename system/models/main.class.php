@@ -9,7 +9,7 @@
  * @since 0.8
  */
 
-require_once(PATH_BASE.'model.class.php');
+require_once(Config::get('path/base').'model.class.php');
 
 class MainModel extends Model {
 

@@ -4,7 +4,7 @@
  *
  * @author Dmitry Avseyenko <polsad@gmail.com>
  * @link http://weegbo.com/
- * @copyright Copyright &copy; 2008-2012 Inspirativ
+ * @copyright Copyright &copy; 2008-2011 Inspirativ
  * @license http://weegbo.com/license/
  * @package system.base.extensions
  * @since 0.8
@@ -29,9 +29,9 @@ class MessageExtension {
     }
 
     public function load($block) {
-        if (file_exists(PATH_APP."messages/{$block}.php")) {
+        if (file_exists(Config::get('path/messages')."{$block}.php")) {
             $aliases = array();
-            $messages = require_once(PATH_APP."messages/{$block}.php");
+            $messages = require_once(Config::get('path/messages')."{$block}.php");
             $this->setAliases($messages, $aliases, $block.'/');
             $this->_messages = array_merge($this->_messages, $aliases);
         }

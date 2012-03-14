@@ -4,11 +4,11 @@
  *
  * @author Dmitry Avseyenko <polsad@gmail.com>
  * @package system.base.helpers
- * @copyright Copyright &copy; 2008-2012 Inspirativ
+ * @copyright Copyright &copy; 2008-2011 Inspirativ
  * @license http://weegbo.com/license/
  * @since 0.8
  */
-require_once(PATH_BASE.'helper.class.php');
+require_once(Config::get('path/base').'helper.class.php');
 /**
  * TruncateHelper class
  *

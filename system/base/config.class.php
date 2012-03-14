@@ -6,7 +6,7 @@
  *
  * @author Dmitry Avseyenko <polsad@gmail.com>
  * @link http://weegbo.com/
- * @copyright Copyright &copy; 2008-2012 Inspirativ
+ * @copyright Copyright &copy; 2008-2011 Inspirativ
  * @license http://weegbo.com/license/
  * @package system.base
  * @since 0.8
@@ -29,12 +29,20 @@ class Config {
      * @param string $file configuration filename
      * @return void
      */
-    public static function load($file) {
-        if (file_exists(PATH_APP . "config/{$file}.php")) {
-            $config = require_once(PATH_APP . "config/{$file}.php");
-            $aliases = array();
-            self::setAliases($config, $aliases);
-            self::$_config = array_merge(self::$_config, $aliases);
+    public static function load($config, $type = 'file') {
+        switch($type) {
+            case 'array':
+                $aliases = array();
+                self::setAliases((array) $config, $aliases);
+                self::$_config = array_merge(self::$_config, $aliases);             
+            break;
+            default:
+                if (file_exists(self::$_config['path/config']."{$config}.php")) {
+                    $config = require_once(self::$_config['path/config']."{$config}.php");
+                    $aliases = array();
+                    self::setAliases($config, $aliases);
+                    self::$_config = array_merge(self::$_config, $aliases);
+                }          
         }
     }
 
