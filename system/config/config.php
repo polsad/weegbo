@@ -4,35 +4,12 @@
  *
  * @author Dmitry Avseyenko <polsad@gmail.com>
  * @link http://weegbo.com/
- * @copyright Copyright &copy; 2008-2012 Inspirativ
+ * @copyright Copyright &copy; 2008-2011 Inspirativ
  * @license http://weegbo.com/license/
  * @package system.config
  * @since 0.8
  */
 return array(
-    /**
-     * File system paths
-     * path/config - path to directory with config files
-     * path/cache - path to directiry with cache files
-     * path/libs - path to directiry with libraries
-     * path/controllers - path to directiry with controllers
-     * path/models - path to directiry with models
-     * path/extensions - path to directiry with framework extensions
-     * path/helpers - path to directiry with templates
-     * path/tmpls - path to directiry with templates
-     * path/host - root URL (for example: http://site.com/)
-     */
-    'path' => array(
-        'config' => PATH_APP.'config/',
-        'cache' => PATH_APP.'cache/',
-        'libs' => PATH_APP.'libraries/',
-        'controllers' => PATH_APP.'controllers/',
-        'models' => PATH_APP.'models/',
-        'extensions' => PATH_BASE.'extensions/',
-        'helpers' => PATH_BASE.'helpers/',
-        'tmpls' => PATH_APP.'tmpls/',
-        'host' => 'http://'.$_SERVER['HTTP_HOST'].'/'
-    ),
     /**
      * Application options
      * app/default-controller - default controller
@@ -71,6 +48,6 @@ return array(
         'debug' => true,
         'profiler' => true,
         'profiler-trace' => true,
-        'log' => PATH_APP.'error.log'
+        'log' => Config::get('path/app').'error.log'
     )
 );
