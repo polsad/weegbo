@@ -34,14 +34,14 @@ class Config {
             case 'array':
                 $aliases = array();
                 self::setAliases((array) $config, $aliases);
-                self::$_config = array_merge(self::$_config, $aliases);             
+                self::$_config = array_merge_recursive(self::$_config, $aliases);             
             break;
             default:
                 if (file_exists(self::$_config['path/config']."{$config}.php")) {
                     $config = require_once(self::$_config['path/config']."{$config}.php");
                     $aliases = array();
                     self::setAliases($config, $aliases);
-                    self::$_config = array_merge(self::$_config, $aliases);
+                    self::$_config = array_merge_recursive(self::$_config, $aliases);
                 }          
         }
     }
@@ -80,7 +80,7 @@ class Config {
         if (is_array($value)) {
             $aliases = array();
             self::setAliases($value, $aliases, $key);
-            self::$_config = array_merge(self::$_config, $aliases);
+            self::$_config = array_merge_recursive(self::$_config, $aliases);
         }
         else {
             self::$_config[$key] = $value;

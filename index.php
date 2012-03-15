@@ -18,23 +18,39 @@ define('START_TIME', microtime(true));
 define('PATH_ROOT', dirname(__file__).'/');
 /**
  * File system paths
- * path/config - path to directory with config files
- * path/cache - path to directiry with cache files
- * path/libs - path to directiry with libraries
- * path/controllers - path to directiry with controllers
- * path/models - path to directiry with models
- * path/extensions - path to directiry with framework extensions
- * path/helpers - path to directiry with templates
- * path/tmpls - path to directiry with templates
+ * path/app - path to directiry with application
+ * path/base - path to directiry with framework
  * path/host - root URL (for example: http://site.com/) 
+ *
+ * config/autoload - file for autoload
+ * config/config - file for config
+ * config/database - file for database
+ * config/router - file for router
  */
 $config = array(
     'path' => array(
         'app' => PATH_ROOT.'system/',
         'base' => PATH_ROOT.'system/base/',
         'host' => 'http://'.$_SERVER['HTTP_HOST'].'/'
-    )
+    ),
+    'config' => array(
+        'autoload' => 'autoload', 
+        'config' => 'config',
+        'database' => 'database',
+        'router' => 'routes'
+    )    
 );
+/**
+ * System paths
+ * path/cache - path to directiry with cache files 
+ * path/config - path to directory with config files
+ * path/controllers - path to directiry with controllers 
+ * path/extensions - path to directiry with framework extensions 
+ * path/helpers - path to directiry with templates 
+ * path/libs - path to directiry with libraries
+ * path/models - path to directiry with models
+ * path/tmpls - path to directiry with templates
+ */
 $paths = array(
     'path' => array(
         'cache' => $config['path']['app'].'cache/',
@@ -45,12 +61,6 @@ $paths = array(
         'libs' => $config['path']['app'].'libraries/',
         'models' => $config['path']['app'].'models/',
         'tmpls' =>  $config['path']['app'].'tmpls/'
-    ),
-    'config' => array(
-        'autoload' => 'autoload', 
-        'config' => 'config',
-        'database' => 'database',
-        'router' => 'routes'
     )
 );
 $config = array_merge_recursive($config, $paths);
