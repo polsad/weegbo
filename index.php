@@ -37,14 +37,20 @@ $config = array(
 );
 $paths = array(
     'path' => array(
-        'config' => $config['path']['app'].'config/',
         'cache' => $config['path']['app'].'cache/',
-        'libs' => $config['path']['app'].'libraries/',
+        'config' => $config['path']['app'].'config/',        
         'controllers' => $config['path']['app'].'controllers/',
-        'models' => $config['path']['app'].'models/',
         'extensions' => $config['path']['base'].'extensions/',
         'helpers' => $config['path']['base'].'helpers/',
+        'libs' => $config['path']['app'].'libraries/',
+        'models' => $config['path']['app'].'models/',
         'tmpls' =>  $config['path']['app'].'tmpls/'
+    ),
+    'config' => array(
+        'autoload' => 'autoload', 
+        'config' => 'config',
+        'database' => 'database',
+        'router' => 'routes'
     )
 );
 $config = array_merge_recursive($config, $paths);

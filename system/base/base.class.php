@@ -28,7 +28,7 @@ class Base {
          */
         require_once($config['path']['base'].'config.class.php');
         Config::load($config, 'array');
-        Config::load('config');
+        Config::load(Config::get('config/config'));
         /**
          * Enable profiler
          */
@@ -176,7 +176,7 @@ class Base {
      * @return string
      */
     private static function replaceUrl($url) {
-        $routes = require_once(Config::get('path/config').'routes.php');
+        $routes = require_once(Config::get('path/config').Config::get('config/router').'.php');
         foreach ($routes as $k => $v) {
             $pattern = '/^'.$k.'[\/]?$/';
             if (preg_match($pattern, $url)) {
@@ -188,7 +188,7 @@ class Base {
     }
 
     private final function autoloadComponents() {
-        $autoload = require_once(Config::get('path/config').'autoload.php');
+        $autoload = require_once(Config::get('path/config').Config::get('config/autoload').'.php');
         /**
          * Load base components
          */

@@ -205,7 +205,7 @@ class Loader {
          * Check config
          */
         if (Config::get('database', true) == NULL) {
-            Config::load('database');
+            Config::load(Config::get('config/database'));
             require_once(Config::get('path/base').'db.class.php');
         }
         /**
