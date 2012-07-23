@@ -13,7 +13,7 @@
  */
 require_once('cache.interface.php');
 class MemcacheCache implements ICache {
-    private $_server = NULL;
+    private $_server = null;
 
     public function __construct() {
         if (!extension_loaded('memcache_add_server')) {
@@ -34,7 +34,7 @@ class MemcacheCache implements ICache {
 
     public function check($key) {
         $result = $this->_server->get($key);
-        $result = ($data == NULL) ? false : true;
+        $result = ($data == null) ? false : true;
         return $result;
     }
 

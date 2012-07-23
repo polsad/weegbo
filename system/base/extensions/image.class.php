@@ -283,7 +283,7 @@ class ImageExtension extends FileExtension {
       $options['margin'] = 5 (number in px, default = 3)
      * @return bool
      */
-    public function setTextWatermark($source, $destination, $text, $options = NULL) {
+    public function setTextWatermark($source, $destination, $text, $options = null) {
         $font = isset($options['font_size']) ? (int) $options['font_size'] : 2;
         $color = isset($options['font_color']) ? strtolower(trim($options['font_color'])) : '#FFFFFF';
         $align = isset($options['align']) ? strtolower(trim($options['align'])) : 'right';
@@ -343,7 +343,7 @@ class ImageExtension extends FileExtension {
      *                     use mode 'transparence'
      * @return bool
      */
-    public function setImageWatermark($source, $destination, $watermark, $options = NULL, $mode = 'common') {
+    public function setImageWatermark($source, $destination, $watermark, $options = null, $mode = 'common') {
         $align = isset($options['align']) ? strtolower(trim($options['align'])) : 'right';
         $valign = isset($options['valign']) ? strtolower(trim($options['valign'])) : 'bottom';
         $margin = isset($options['margin']) ? (int) $options['margin'] : 3;

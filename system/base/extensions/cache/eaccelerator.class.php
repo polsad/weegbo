@@ -22,7 +22,7 @@ class EacceleratorCache implements ICache {
 
     public function check($key) {
         $result = eaccelerator_get($key);
-        $result = ($result == NULL) ? false : true;
+        $result = ($result == null) ? false : true;
         return $result;
     }
 

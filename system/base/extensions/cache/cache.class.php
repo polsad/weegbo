@@ -15,7 +15,7 @@ class CacheExtension {
     /**
      * @var string cache system
      */
-    private $_cache = NULL;
+    private $_cache = null;
 
     /**
      * Constructor, trying set cache system
@@ -24,8 +24,8 @@ class CacheExtension {
      * @param string $cache cache system
      * @return void
      */
-    public function __construct($cache = NULL) {
-        if (NULL == $cache) {
+    public function __construct($cache = null) {
+        if (null === $cache) {
             $this->init(Config::get('app/cache/driver'));
         }
         else {

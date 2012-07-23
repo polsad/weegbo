@@ -16,15 +16,16 @@ class CException extends Exception {
      * @var int trace index
      */
     protected $_traceIndex = 1;
+
     /**
      * @var int HTTP status code
      */
     protected $_statusCode = 500;
 
-    public function __construct($message, $traceIndex = NULL, $statusCode = NULL) {
-        $this->_traceIndex = ($traceIndex === NULL) ? $this->_traceIndex : $traceIndex;
-        $this->_statusCode = ($statusCode === NULL) ? $this->_statusCode : $statusCode;
-        parent::__construct($message, NULL);
+    public function __construct($message, $traceIndex = null, $statusCode = null) {
+        $this->_traceIndex = ($traceIndex === null) ? $this->_traceIndex : $traceIndex;
+        $this->_statusCode = ($statusCode === null) ? $this->_statusCode : $statusCode;
+        parent::__construct($message, null);
     }
 
     /**

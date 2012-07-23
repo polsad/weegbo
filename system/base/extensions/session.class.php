@@ -22,12 +22,12 @@ class SessionExtension {
      * @param string $subdomains cookie would be access in all subdomains this domain
      * @return void
      */
-    public function __construct($subdomains = NULL) {
+    public function __construct($subdomains = null) {
         /**
          * Init session and create 'session' array
          */
         if (!isset($_SESSION)) {
-            if (NULL != $subdomains) {
+            if (null != $subdomains) {
                 session_set_cookie_params('Session', '/', '.'.$subdomains);
             }
             session_start();
@@ -58,7 +58,7 @@ class SessionExtension {
      * @return mixed
      */
     public function get($name) {
-        $value = isset($_SESSION[$this->_name][$name]) ? $_SESSION[$this->_name][$name] : NULL;
+        $value = isset($_SESSION[$this->_name][$name]) ? $_SESSION[$this->_name][$name] : null;
         return $value;
     }
 

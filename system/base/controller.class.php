@@ -14,7 +14,7 @@
 abstract class Controller {
 
     public function __construct() {
-
+        
     }
 
     /**
@@ -56,26 +56,11 @@ abstract class Controller {
      * @param string $page template name
      * @return void
      */
-    public final function displayPage($page, $expire = NULL) {
-        $this->view->display($page, $expire);
-        /**
-         * If statistic enable, and page is render, show statistic
-         */
-        if (Config::get('debug/profiler')) {
-            Profiler::showResult();
+    public final function displayPage($page, $code = null, $expire = null) {
+        if ($code !== null) {
+            Base::sendHttpCode($code);
         }
-        exit();
-    }
-
-    /**
-     * Display error page.
-     *
-     * @access public
-     * @param int $error error number, see Error::displayErrorPage()
-     * @return void
-     */
-    public final function displayErrorPage($error) {
-        Error::displayErrorPage($error);
+        $this->view->display($page, $expire);
         /**
          * If statistic enable, and page is render, show statistic
          */
@@ -92,11 +77,14 @@ abstract class Controller {
      * @param string $page URL ('/' -  main page)
      * @return void
      */
-    public final function redirect($url) {
-        if (!preg_match('#^(https?|ftp)://#', $url, $match)) {
-            $url = Config::get('path/host') . ltrim($url, '/');
+    public final function redirect($url, $code = null) {
+        if ($code !== null) {
+            Base::sendHttpCode($code);
         }
-        Header('Location: ' . $url);
+        if (!preg_match('#^(https?|ftp)://#', $url, $match)) {
+            $url = Config::get('path/host').ltrim($url, '/');
+        }
+        Header('Location: '.$url);
         exit();
     }
 

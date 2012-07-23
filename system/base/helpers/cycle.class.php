@@ -25,7 +25,7 @@ class CycleHelper extends Helper {
     private $_args = array();
 
     public function execute($args = array()) {
-        $name = isset($args[0]) ? $args[0] : NULL;
+        $name = isset($args[0]) ? $args[0] : null;
         if (!isset($this->_args[$name])) {
             $this->_args[$name]['vals'] = array_slice($args, 1);
             $this->_args[$name]['index'] = 0;

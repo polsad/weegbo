@@ -22,14 +22,14 @@ class PagingExtension {
      * @param int $count_on_page records number on page
      * @param int $count_pages   pages number in paging
      * @param int $page          current page
-     * @return array|NULL
+     * @return array|null
      */
     public function getPages($count_records, $count_on_page, $count_pages, $page) {
         if ($count_on_page > 0)
             $count = ceil($count_records / $count_on_page);
         // if we have 1 page - don't show paging
         if ($count <= 1)
-            return NULL;
+            return null;
         if ($page < 1)
             $page = 1;
         if ($page > $count)

@@ -15,7 +15,8 @@ class Config {
     /**
      * @var static property to hold singleton instance
      */
-    private static $_instance = NULL;
+    private static $_instance = null;
+
     /**
      *
      * @var static property for save configuration data
@@ -30,19 +31,19 @@ class Config {
      * @return void
      */
     public static function load($config, $type = 'file') {
-        switch($type) {
+        switch ($type) {
             case 'array':
                 $aliases = array();
                 self::setAliases((array) $config, $aliases);
-                self::$_config = array_merge_recursive(self::$_config, $aliases);             
-            break;
+                self::$_config = array_merge_recursive(self::$_config, $aliases);
+                break;
             default:
-                if (file_exists(self::$_config['path/config']."{$config}.php")) {
-                    $config = require_once(self::$_config['path/config']."{$config}.php");
+                if (file_exists($config)) {
+                    $config = require_once($config);
                     $aliases = array();
                     self::setAliases($config, $aliases);
                     self::$_config = array_merge_recursive(self::$_config, $aliases);
-                }          
+                }
         }
     }
 
@@ -51,15 +52,17 @@ class Config {
      *
      * @access public
      * @param string $key
+     * @param bool $part
      * @return mixed
      */
     public static function get($key, $part = false) {
-        if ($part == false) {
-            $result = isset(self::$_config[$key]) ? self::$_config[$key] : NULL;
+        if ($part === false) {
+            $result = isset(self::$_config[$key]) ? self::$_config[$key] : null;
         }
         else {
-            $result = array();
-            foreach(self::$_config as $k => $v) {
+            $result = null;
+            $key = rtrim($key, '/').'/';
+            foreach (self::$_config as $k => $v) {
                 if (0 === strpos($k, $key)) {
                     $result[$k] = $v;
                 }
@@ -88,13 +91,39 @@ class Config {
     }
 
     /**
+     * Convert aliases to array
+     *
+     * @access public
+     * @param array $aliases
+     * @param string $prefix - if prefix !== null, delete it from aliases
+     * @return array
+     */
+    public function convertToArray($aliases, $prefix = null) {
+        $result = array();
+        $len = ($prefix === null) ? 0 : strlen($prefix);
+        foreach ((array) $aliases as $k => $v) {
+            $keys = ($prefix === null) ? $k : substr($k, $len);
+            $keys = explode('/', $keys);
+            $vals = &$result;
+            foreach ($keys as $key) {
+                if (!isset($vals[$key])) {
+                    $vals[$key] = array();
+                }
+                $vals = &$vals[$key];
+            }
+            $vals = $v;
+        }
+        return $result;
+    }
+
+    /**
      * Factory method to return the singleton instance.
      *
      * @access public
      * @return object
      */
     public static function getInstance() {
-        if (NULL == Config::$_instance) {
+        if (null == Config::$_instance) {
             Config::$_instance = new Config;
         }
         return Config::$_instance;
@@ -118,13 +147,13 @@ class Config {
      * @param string $path
      * @return void
      */
-    private static function setAliases($config, &$aliases, $path = NULL) {
+    private static function setAliases($config, &$aliases, $path = null) {
         foreach ($config as $k => $v) {
             if (is_array($v)) {
-                self::setAliases($v, $aliases, $path . $k . '/');
+                self::setAliases($v, $aliases, $path.$k.'/');
             }
             else {
-                $aliases[$path . $k] = $v;
+                $aliases[$path.$k] = $v;
             }
         }
     }

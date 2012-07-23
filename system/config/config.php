@@ -35,9 +35,21 @@ return array(
                 array('host' => '', 'port' => '')
             )
         ),
+        'autoload' => array(
+            'base' => array(
+                'view'  
+            ),
+            'extensions' => array(
+                array('ajax', 'ajaxalias'),
+                array('ajax', 'ajax2'),
+                array('db', 'db', 'master'),
+                'file'
+            ),
+            'models' => array('main')        
+        ),
         'ob-gzip' => false,
         'session-name' => 'session',
-    ),
+    ),  
     /**
      * Debug options
      * debug/debug - enable or disable debug (Load errors, Db errors, etc...)

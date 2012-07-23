@@ -16,7 +16,7 @@ class FtpExtension {
     /**
      * @var resource FTP connection resourse
      */
-    private $_connection = NULL;
+    private $_connection = null;
 
     /**
      * Connect to FTP server.
@@ -122,7 +122,7 @@ class FtpExtension {
      *
      * @access public
      * @param string $dir_name directory name
-     * @return string|NULL
+     * @return string|null
      */
     public function cd($dir_name) {
         if (!$this->status())
@@ -134,14 +134,14 @@ class FtpExtension {
      * Current directory.
      *
      * @access public
-     * @return string|NULL
+     * @return string|null
      */
     public function currdir() {
         if (!$this->status())
             return false;
         $dir = @ftp_pwd($this->_connection);
         if (false == $dir)
-            $dir == NULL;
+            $dir == null;
         return $dir;
     }
 
@@ -151,7 +151,7 @@ class FtpExtension {
      * @access public
      * @param int $mode unix mode (for example - 0644)
      * @param string $server_file path to file on server
-     * @return string|NULL
+     * @return string|null
      */
     public function chmod($server_file, $mode) {
         if (!$this->status())
@@ -195,7 +195,7 @@ class FtpExtension {
         if (substr($dir_name, -1) != '/')
             $dir_name .= '/';
         $filelist = $this->ls($dir_name);
-        if ($filelist != NULL) {
+        if ($filelist != null) {
             foreach ($filelist as $item) {
                 if ($item != $dir_name.'.' && $item != $dir_name.'..') {
                     if (!$this->delete($item)) {
@@ -212,14 +212,14 @@ class FtpExtension {
      *
      * @access public
      * @param string $dir_name directory name
-     * @return string|NULL
+     * @return string|null
      */
     public function ls($dir_name = '.') {
         if (!$this->status())
             return false;
         $res = @ftp_nlist($this->_connection, $dir_name);
         if ($res == false) {
-            $res = NULL;
+            $res = null;
         }
         return $res;
     }

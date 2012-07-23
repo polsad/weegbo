@@ -16,7 +16,8 @@ class Input {
      *
      * @var static property to hold singleton instance
      */
-    private static $_instance = NULL;
+    private static $_instance = null;
+
     /**
      *
      * @var static property to store input data
@@ -32,10 +33,9 @@ class Input {
      */
     public static function initData($data) {
         self::$_data = $data;
-        /**
-         * Init $_GET array for others libraries
-         */                 
-        $_GET = &self::$_data['get'];
+        if (function_exists('get_magic_quotes_gpc') && get_magic_quotes_gpc()) {
+            $this->_stripSlashes();
+        }
     }
 
     /**
@@ -103,8 +103,8 @@ class Input {
      */
     public static function checkFiles($key, $true = true, $false = false) {
         return self::checkData($key, $true, $false, 'files');
-    }    
-    
+    }
+
     /**
      * Check URI data
      *
@@ -158,10 +158,10 @@ class Input {
      * @access public
      * @param string $key
      * @param string $type type 'int', 'string', 'float', 'bool', 'array'. 'string' by default
-     * @param mixed $default default result, NULL by default
+     * @param mixed $default default result, null by default
      * @return mixed
      */
-    public static function get($key, $type = 'string', $default = NULL) {
+    public static function get($key, $type = 'string', $default = null) {
         return self::getData($key, $type, $default, 'get');
     }
 
@@ -171,10 +171,10 @@ class Input {
      * @access public
      * @param string $key
      * @param string $type type 'int', 'string', 'float', 'bool', 'array'. 'string' by default
-     * @param mixed $default default result, NULL by default
+     * @param mixed $default default result, null by default
      * @return mixed
      */
-    public static function post($key, $type = 'string', $default = NULL) {
+    public static function post($key, $type = 'string', $default = null) {
         return self::getData($key, $type, $default, 'post');
     }
 
@@ -184,10 +184,10 @@ class Input {
      * @access public
      * @param string $key
      * @param string $type type 'int', 'string', 'float', 'bool', 'array'. 'string' by default
-     * @param mixed $default default result, NULL by default
+     * @param mixed $default default result, null by default
      * @return mixed
      */
-    public static function cookie($key, $type = 'string', $default = NULL) {
+    public static function cookie($key, $type = 'string', $default = null) {
         return self::getData($key, $type, $default, 'cookie');
     }
 
@@ -197,23 +197,23 @@ class Input {
      * @access public
      * @param string $key
      * @param string $type type 'array'.
-     * @param mixed $default default result, NULL by default
+     * @param mixed $default default result, null by default
      * @return mixed
      */
-    public static function files($key, $type = 'array', $default = NULL) {
+    public static function files($key, $type = 'array', $default = null) {
         return self::getData($key, $type, $default, 'files');
-    }        
-    
+    }
+
     /**
      * Return URI data
      *
      * @access public
      * @param string $key
      * @param string $type type 'int', 'string', 'float', 'bool', 'array'. 'string' by default
-     * @param mixed $default default result, NULL by default
+     * @param mixed $default default result, null by default
      * @return mixed
      */
-    public static function uri($key, $type = 'string', $default = NULL) {
+    public static function uri($key, $type = 'string', $default = null) {
         return self::getData($key, $type, $default, 'uri');
     }
 
@@ -223,10 +223,10 @@ class Input {
      * @access public
      * @param string $key
      * @param string $type type 'int', 'string', 'float', 'bool', 'array'. 'string' by default
-     * @param mixed $default default result, NULL by default
+     * @param mixed $default default result, null by default
      * @return mixed
      */
-    public static function domain($key, $type = 'string', $default = NULL) {
+    public static function domain($key, $type = 'string', $default = null) {
         return self::getData($key, $type, $default, 'domain');
     }
 
@@ -252,7 +252,7 @@ class Input {
      * @return object
      */
     public static function getInstance() {
-        if (NULL == Input::$_instance) {
+        if (null == Input::$_instance) {
             Input::$_instance = new Input;
         }
         return Input::$_instance;
@@ -262,6 +262,15 @@ class Input {
      * Constructor.
      */
     public function __construct() {
+        
+    }
 
+    /**
+     * Stripslashes
+     */
+    private function _stripSlashes() {
+        self::$_data['get'] = array_map('stripslashes', self::$_data['get']);
+        self::$_data['post'] = array_map('stripslashes', self::$_data['post']);
+        self::$_data['cookie'] = array_map('stripslashes', self::$_data['cookie']);
     }
 }

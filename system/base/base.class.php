@@ -15,6 +15,8 @@
  * @since 0.8
  */
 class Base {
+    private static $_http_codes = null;
+
     /**
      * Create application.
      *
@@ -29,11 +31,13 @@ class Base {
         require_once($config['path']['base'].'config.class.php');
         Config::load($config, 'array');
         Config::load(Config::get('config/config'));
+        
         /**
          * Enable profiler
          */
         if (Config::get('debug/profiler')) {
-            require_once(Config::get('path/base').'profiler.class.php'); 
+            require_once(Config::get('path/base').'profiler.class.php');
+            Profiler::add("Config loaded");
         }
         /**
          * Include static classes exception and error, set error handler Error::codeError method.
@@ -42,18 +46,17 @@ class Base {
         require_once(Config::get('path/base').'error.class.php');
         set_error_handler(create_function('$c, $m, $f, $l', 'Error::errorHandler($m, $c, $f, $l);'), E_ALL ^ E_NOTICE);
         /**
-         * Include class Register.
+         * Include class Registry, Loader and Input
          */
         require_once(Config::get('path/base').'registry.class.php');
-        /**
-         * Include class Loader and Input, create loader, input and config instance.
-         */
         require_once(Config::get('path/base').'loader.class.php');
         require_once(Config::get('path/base').'input.class.php');
+        /**
+         * Set Loader, Input, Config to Register.
+         */
+        Registry::set('config', Config::getInstance());
         Registry::set('load', Loader::getInstance());
         Registry::set('input', Input::getInstance());
-        Registry::set('config', Config::getInstance());
-
         if (Config::get('debug/profiler')) {
             Profiler::add("Static framework classes loaded");
         }
@@ -82,7 +85,7 @@ class Base {
      */
     public static function routing() {
         $data = array(
-            'get' => array(),
+            'get' => &$_GET,
             'post' => &$_POST,
             'cookie' => &$_COOKIE,
             'files' => &$_FILES,
@@ -91,7 +94,7 @@ class Base {
         );
 
         self::parseDomain($_SERVER['HTTP_HOST'], $data['domain']);
-        self::parseUrl(substr($_SERVER['REQUEST_URI'], 1), $data['uri'], $data['get']);
+        self::parseUrl(substr($_SERVER['REQUEST_URI'], 1), $data['uri']);
 
         /**
          * Detect controller name
@@ -122,6 +125,17 @@ class Base {
         Registry::get('controller')->execute($action);
     }
 
+    public function sendHttpCode($code) {
+        if ($this->_http_codes === null) {
+            if (null === $this->_http_codes && file_exists(Config::get('path/config').'http-codes.php')) {
+                $this->_http_codes = require_once(Config::get('path/config').'http-codes.php');
+            }
+        }
+        if (array_key_exists($code, $this->_http_codes)) {
+            Header("HTTP/1.1 {$code} {$this->_http_codes[$code]}");
+        }
+    }
+
     /**
      * Parse URL for obtaining domain and subdomains.
      *
@@ -143,28 +157,13 @@ class Base {
      * @param link $get array with GET segment
      * @return void
      */
-    private static function parseUrl($url, &$uri, &$get) {
-        if (strpos($url, '?') !== false) {
-            $url = explode('?', $url);
-            $uristr = $url[0];
-            $getstr = $url[1];
-        }
-        else {
-            $uristr = $url;
-            $getstr = NULL;
-        }
+    private static function parseUrl($url, &$uri) {
+        $uri = strpos($url, '?');
+        $uri = ($uri === false) ? $url : substr($url, 0, $uri);
         if (Config::get('app/router')) {
-            $uristr = self::replaceUrl($uristr);
+            $uri = self::replaceUrl($uri);
         }
-        $uri = explode('/', $uristr);
-        if (NULL != $getstr) {
-            $buff = explode('&', $getstr);
-            $size = sizeof($buff);
-            for ($i = 0; $i < $size; $i++) {
-                $params = explode('=', $buff[$i]);
-                $get[$params[0]] = $params[1];
-            }
-        }
+        $uri = explode('/', $uri);
     }
 
     /**
@@ -176,7 +175,7 @@ class Base {
      * @return string
      */
     private static function replaceUrl($url) {
-        $routes = require_once(Config::get('path/config').Config::get('config/router').'.php');
+        $routes = require_once(Config::get('config/router'));
         foreach ($routes as $k => $v) {
             $pattern = '/^'.$k.'[\/]?$/';
             if (preg_match($pattern, $url)) {
@@ -187,49 +186,28 @@ class Base {
         return $url;
     }
 
+    /**
+     * Автозагрузка компонентов
+     */
     private final function autoloadComponents() {
-        $autoload = require_once(Config::get('path/config').Config::get('config/autoload').'.php');
         /**
          * Load base components
          */
-        foreach ($autoload['base'] as $k => $v) {
-            if (is_array($v) && NULL != $v) {
-                call_user_func_array("Loader::$k", $v);
-            }
-            else {
-                Loader::$v();
-            }
-        }
+        $autoload = Config::get('app/autoload/', true);
+        $autoload = Config::convertToArray($autoload, 'app/autoload/');
 
-        /**
-         * Load extensions
-         */
-        foreach ($autoload['extensions'] as $k => $v) {
-            if (is_array($v) && NULL != $v) {
-                $vals = array($k);
-                $vals = array_merge($vals, $v);
+        $components = array(
+            'base' => 'base',
+            'extensions' => 'extension',
+            'models' => 'model'
+        );
+        foreach ($components as $k => $v) {
+            if (true === array_key_exists($k, $autoload)) {
+                foreach ($autoload[$k] as $l => $m) {
+                    $vals = is_array($m) ? (is_int($l)) ? $m : array_merge(array($l), $m)  : (array) $m;
+                    call_user_func_array("Loader::$v", $vals);
+                }
             }
-            else {
-                $vals = array($v);
-            }
-            call_user_func_array('Loader::extension', $vals);
         }
-        /**
-         * Load models
-         */
-        foreach ($autoload['models'] as $k => $v) {
-            if (is_array($v) && NULL != $v) {
-                $vals = array($k);
-                $vals = array_merge($vals, $v);
-            }
-            else {
-                $vals = array($v);
-            }
-            call_user_func_array('Loader::model', $vals);
-        }
-        /**
-         * Set templates vars
-         */
-        Registry::get('view')->assign('path_host', Config::get('path/host'));
     }
 }

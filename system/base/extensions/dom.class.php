@@ -21,7 +21,7 @@ class DomExtension {
     /**
      * @var object dom document
      */
-    private $dom = NULL;
+    private $dom = null;
 
     /**
      * Constructor
@@ -45,17 +45,17 @@ class DomExtension {
      * @param array $attr array with node attributes
      * @return DOM node
      */
-    public function setElement($node, $root = NULL, $value = NULL, $attr = NULL) {
-        if (NULL == $value)
+    public function setElement($node, $root = null, $value = null, $attr = null) {
+        if (null == $value)
             $nnode = $this->dom->createElement($node);
         else
             $nnode = $this->dom->createElement($node, (string) $value);
-        if (NULL != $attr) {
+        if (null != $attr) {
             foreach ((array) $attr as $k => $v) {
                 $nnode->setAttribute($k, $v);
             }
         }
-        if ($root != NULL)
+        if ($root != null)
             $root->appendChild($nnode);
         else
             $this->dom->appendChild($nnode);
@@ -72,10 +72,10 @@ class DomExtension {
      * @param array $attr array with node attributes
      * @return DOM node
      */
-    public function setElementCdata($node, $root, $value, $attr = NULL) {
+    public function setElementCdata($node, $root, $value, $attr = null) {
         $cdata = $this->dom->createCDATASection($value);
         $nnode = $this->dom->createElement($node);
-        if (NULL != $attr) {
+        if (null != $attr) {
             foreach ((array) $attr as $k => $v) {
                 $nnode->setAttribute($k, $v);
             }

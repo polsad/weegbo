@@ -16,29 +16,20 @@
  */
 define('START_TIME', microtime(true));
 define('PATH_ROOT', dirname(__file__).'/');
+
 /**
  * File system paths
  * path/app - path to directiry with application
  * path/base - path to directiry with framework
  * path/host - root URL (for example: http://site.com/) 
  *
- * config/autoload - file for autoload
- * config/config - file for config
- * config/database - file for database
- * config/router - file for router
  */
 $config = array(
     'path' => array(
         'app' => PATH_ROOT.'system/',
         'base' => PATH_ROOT.'system/base/',
         'host' => 'http://'.$_SERVER['HTTP_HOST'].'/'
-    ),
-    'config' => array(
-        'autoload' => 'autoload', 
-        'config' => 'config',
-        'database' => 'database',
-        'router' => 'routes'
-    )    
+    )
 );
 /**
  * System paths
@@ -51,20 +42,35 @@ $config = array(
  * path/models - path to directiry with models
  * path/tmpls - path to directiry with templates
  */
-$paths = array(
-    'path' => array(
-        'cache' => $config['path']['app'].'cache/',
-        'config' => $config['path']['app'].'config/',        
-        'controllers' => $config['path']['app'].'controllers/',
-        'extensions' => $config['path']['base'].'extensions/',
-        'helpers' => $config['path']['base'].'helpers/',
-        'libs' => $config['path']['app'].'libraries/',
-        'models' => $config['path']['app'].'models/',
-        'tmpls' =>  $config['path']['app'].'tmpls/'
+$config = array_merge_recursive($config,
+    array(
+        'path' => array(
+            'cache' => $config['path']['app'].'cache/',
+            'config' => $config['path']['app'].'config/',        
+            'controllers' => $config['path']['app'].'controllers/',
+            'extensions' => $config['path']['base'].'extensions/',
+            'helpers' => $config['path']['base'].'helpers/',
+            'libs' => $config['path']['app'].'libraries/',
+            'models' => $config['path']['app'].'models/',
+            'tmpls' =>  $config['path']['app'].'tmpls/'
+        )
     )
 );
-$config = array_merge_recursive($config, $paths);
-
+/**
+ * System paths
+ * config/config - file for config
+ * config/database - file for database
+ * config/router - file for router
+ */
+$config = array_merge_recursive($config,
+    array(
+        'config' => array(
+            'config' => $config['path']['config'].'config.php',
+            'router' => $config['path']['config'].'routes.php',        
+            'database' => $config['path']['config'].'database.php'
+        )
+    )
+);
 /**
  * Run application. PATH_ROOT.'system/' - path to application folder
  */

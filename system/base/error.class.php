@@ -33,7 +33,10 @@ class Error {
         else {
             $message = "Exception: {$e->getMessage()} in {$trace[$traceIndex]['file']} on line {$trace[$traceIndex]['line']}";
             self::writeError($message);
-            self::displayErrorPage($e->getStatusCode());
+            if (!Registry::isValid('view')) {
+                Loader::view();
+            }
+            Registry::get('view')->display('error/error-'.$error.'.tpl', $e->getStatusCode());
         }
         exit();
     }
@@ -73,30 +76,6 @@ class Error {
     }
 
     /**
-     * Display error page.
-     *
-     * @access public
-     * @param int $error_number error number, can be 403, 404, 500, 503
-     * @return void
-     */
-    public static function displayErrorPage($error) {
-        $messages = array(
-            403 => 'Forbidden',
-            404 => 'Not Found',
-            500 => 'Internal Server Error',
-            503 => 'Service Unavailable',
-        );
-        Header("HTTP/1.1 $error $messages[$error]");
-        /**
-         * If view not loaded
-         */
-        if (!Registry::isValid('view')) {
-            Loader::view();
-        }
-        Registry::get('view')->display('error/error-' . $error . '.tpl');
-    }
-
-    /**
      * Write message to log file.
      *
      * @access private
@@ -106,7 +85,7 @@ class Error {
     private static function writeError($message) {
         if (file_exists(Config::get('debug/log'))) {
             if (!Registry::isValid('logger')) {
-                Loader::extension('logger', NULL, Config::get('debug/log'));
+                Loader::extension('logger', null, Config::get('debug/log'));
             }
             Registry::get('logger')->setMessage($message);
         }

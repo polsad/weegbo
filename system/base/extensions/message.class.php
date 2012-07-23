@@ -14,7 +14,7 @@ class MessageExtension {
      * @var array messages
      */
     private $_messages = array();
-    private $_mainblock = NULL;
+    private $_mainblock = null;
 
     /**
      * Construct.
@@ -45,7 +45,7 @@ class MessageExtension {
      * @return message
      */
     public function get($key) {
-        $message = NULL;
+        $message = null;
         $key = (strpos($key, '/') == false) ? $this->_mainblock.'/'.$key : $key;
         if (isset($this->_messages[$key])) {
             $message = $this->_messages[$key];
@@ -53,7 +53,7 @@ class MessageExtension {
         return $message;
     }
 
-    private function setAliases($messages, &$aliases, $path = NULL) {
+    private function setAliases($messages, &$aliases, $path = null) {
         foreach ($messages as $k => $v) {
             if (is_array($v)) {
                 $this->setAliases($v, $aliases, $path.$k.'/');

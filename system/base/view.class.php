@@ -14,6 +14,7 @@ class View {
      * @var array storage template's variables
      */
     private $_data = array();
+
     /**
      * @var array storage template's helper objects
      */
@@ -46,11 +47,8 @@ class View {
              * Load helper
              */
             Loader::helper($name, $name);
-            return $this->_helpers[$helper]->execute($args);
         }
-        else {
-            return $this->_helpers[$helper]->execute($args);
-        }
+        return $this->_helpers[$helper]->execute($args);
     }
 
     /**
@@ -78,14 +76,14 @@ class View {
      * @param string $cache [option] cache filename
      * @return string template as string
      */
-    public function fetch($tmpl, $expire = NULL, $cache = NULL) {
+    public function fetch($tmpl, $expire = null, $cache = null) {
         $result = '';
-        if (NULL != $expire) {
-            if (NULL == $cache) {
+        if (null != $expire) {
+            if (null == $cache) {
                 $cache = $this->getCacheKey($tmpl);
             }
             $result = $this->getCache($cache);
-            if (NULL == $result) {
+            if (null == $result) {
                 if ($this->checkFileTemplate($tmpl)) {
                     ob_start();
                     extract($this->_data);
@@ -116,7 +114,7 @@ class View {
      * @param int $cache_time [option] cache live time in seconds
      * @return void
      */
-    public function template($template, $cache_time = NULL) {
+    public function template($template, $cache_time = null) {
         echo $this->fetch($template, $cache_time);
     }
 
@@ -128,7 +126,7 @@ class View {
      * @param int $cache_time [option] cache live time in seconds
      * @return void
      */
-    public function display($templete, $cache_time = NULL) {
+    public function display($templete, $cache_time = null) {
         if (Config::get('ob_gzip') == true) {
             ob_start('ob_gzhandler', 9);
         }
@@ -167,7 +165,7 @@ class View {
      * @return mixed
      */
     private function getCache($file) {
-        $result = NULL;
+        $result = null;
         if (file_exists(Config::get('path/cache').$file)) {
             if (@filemtime(Config::get('path/cache').$file) > time()) {
                 $result = file_get_contents(Config::get('path/cache').$file);

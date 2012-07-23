@@ -19,11 +19,11 @@
  */
 require_once(Config::get('path/extensions').'dom.class.php');
 class RssExtension extends DomExtension {
-    private $_channel = NULL;
+    private $_channel = null;
 
     public function __construct($encoding = 'UTF-8') {
         parent::__construct('1.0', $encoding);
-        $rss = $this->setElement('rss', NULL, NULL, array('version' => '2.0'));
+        $rss = $this->setElement('rss', null, null, array('version' => '2.0'));
         $this->_channel = $this->setElement('channel', $rss);
     }
 
@@ -62,7 +62,7 @@ class RssExtension extends DomExtension {
                  * Cloud tag
                  */
                 if ($k == 'cloud' && is_array($v)) {
-                    $this->setElement($k, $this->_channel, NULL, $v);
+                    $this->setElement($k, $this->_channel, null, $v);
                 }
                 /**
                  * Image tag
@@ -128,8 +128,8 @@ class RssExtension extends DomExtension {
                             $nattr['length'] = $v['length'];
                         if (array_key_exists('type', $v))
                             $nattr['type'] = $v['type'];
-                        if (NULL != $nattr) {
-                            $this->setElement($k, $item, NULL, $nattr);
+                        if (null != $nattr) {
+                            $this->setElement($k, $item, null, $nattr);
                         }
                     }
                     /**

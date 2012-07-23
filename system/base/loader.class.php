@@ -13,7 +13,16 @@ class Loader {
     /**
      * @var static property to hold singleton instance
      */
-    private static $_instance = NULL;
+    private static $_instance = null;
+    private static $_base = array('view');
+
+    public static function base() {
+        $args = func_get_args();
+        $base = isset($args[0]) ? strtolower($args[0]) : null;
+        if (in_array($base, self::$_base)) {
+            self::$base(array_slice($args, 1));
+        }
+    }
 
     /**
      * Static method for loading controller
@@ -24,15 +33,15 @@ class Loader {
      */
     public static function controller() {
         $args = func_get_args();
-        $controller = isset($args[0]) ? strtolower($args[0]) : NULL;
-        $name = isset($args[1]) ? $args[1] : $model;
+        $controller = isset($args[0]) ? strtolower($args[0]) : null;
+        $name = isset($args[1]) ? $args[1] : $controller;
         $args = array_slice($args, 2);
 
         if (file_exists(Config::get('path/controllers').$controller.'.class.php')) {
             require_once(Config::get('path/controllers').$controller.'.class.php');
             $class = ucwords($controller).'Controller';
             try {
-                self::createObject($class, $name, $args);
+                self::_createObject($class, $name, $args);
                 if (Config::get('debug/profiler')) {
                     Profiler::add("Controller class {$class} loaded", 'load-controller');
                 }
@@ -60,7 +69,7 @@ class Loader {
      */
     public static function extension() {
         $args = func_get_args();
-        $extension = isset($args[0]) ? strtolower($args[0]) : NULL;
+        $extension = isset($args[0]) ? strtolower($args[0]) : null;
         $name = isset($args[1]) ? $args[1] : $extension;
         $args = array_slice($args, 2);
 
@@ -76,7 +85,7 @@ class Loader {
 
         $class = ucfirst($extension).'Extension';
         try {
-            self::createObject($class, $name, $args);
+            self::_createObject($class, $name, $args);
             if (Config::get('debug/profiler')) {
                 Profiler::add("Extension class {$class} loaded", 'load-extension');
             }
@@ -88,7 +97,7 @@ class Loader {
             throw new CException("Extension class {$class} in file {$extension}.class.php not found", 0, 500);
         }
     }
-    
+
     /**
      * Static method for loading helper
      *
@@ -100,7 +109,7 @@ class Loader {
      */
     public static function helper() {
         $args = func_get_args();
-        $helper = isset($args[0]) ? strtolower($args[0]) : NULL;
+        $helper = isset($args[0]) ? strtolower($args[0]) : null;
         $name = isset($args[1]) ? $args[1] : $helper;
         $args = array_slice($args, 2);
 
@@ -112,7 +121,7 @@ class Loader {
         }
         $class = ucfirst($helper).'Helper';
         try {
-            self::createObject($class, $name, $args, true);
+            self::_createObject($class, $name, $args, true);
             if (Config::get('debug/profiler')) {
                 Profiler::add("Helper class {$class} loaded", 'load-helper');
             }
@@ -135,14 +144,14 @@ class Loader {
      */
     public static function model() {
         $args = func_get_args();
-        $model = isset($args[0]) ? strtolower($args[0]) : NULL;
+        $model = isset($args[0]) ? strtolower($args[0]) : null;
         $name = isset($args[1]) ? $args[1] : $model;
         $args = array_slice($args, 2);
         if (file_exists(Config::get('path/models').$model.'.class.php')) {
             require_once(Config::get('path/models').$model.'.class.php');
             $class = ucfirst($model).'Model';
             try {
-                self::createObject($class, $name, $args);
+                self::_createObject($class, $name, $args);
                 if (Config::get('debug/profiler')) {
                     Profiler::add("Model class {$class} loaded", 'load-model');
                 }
@@ -157,66 +166,6 @@ class Loader {
         else {
             throw new CException("Model file {$model}.class.php not found", 0, 500);
         }
-    }
-
-    /**
-     * Static method for loading library
-     *
-     * @access public
-     * @return void
-     */
-    public static function library() {
-        $args = func_get_args();
-        $path = isset($args[0]) ? $args[0] : NULL;
-        $library = isset($args[1]) ? $args[1] : NULL;
-        $name = isset($args[2]) ? $args[2] : NULL;
-        $args = array_slice($args, 3);
-        if (file_exists(Config::get('path/libs').$path)) {
-            require_once(Config::get('path/libs').$path);
-            try {
-                self::createObject($library, $name, $args);
-                if (Config::get('debug/profiler')) {
-                    Profiler::add("Library class {$library} loaded", 'load-library');
-                }
-            }
-            catch (CException $e) {
-                Error::exceptionHandler($e);
-            }
-            catch (Exception $e) {
-                throw new CException("Library class {$library} in file {$path} not found", 0, 500);
-            }
-        }
-        else {
-            throw new CException("Library file {$path} not found", 0, 500);
-        }
-    }
-
-    /**
-     * Load class for work with database
-     * database.php - file with configuration
-     *
-     * @access public
-     * @return void
-     */
-    public static function db() {
-        $args = func_get_args();
-        $server = isset($args[0]) ? $args[0] : NULL;
-        /**
-         * Check config
-         */
-        if (Config::get('database', true) == NULL) {
-            Config::load(Config::get('config/database'));
-            require_once(Config::get('path/base').'db.class.php');
-        }
-        /**
-         * Check server config
-         */
-        if (Config::get('database/'.$server, true) == NULL) {
-            throw new CException("DB config {$server} not found", 0, 500);
-        }
-        $db = Db::getInstance();
-        $db->connect($server);
-        Registry::set('db', $db);
     }
 
     /**
@@ -237,7 +186,7 @@ class Loader {
      * @return Registry
      */
     public static function getInstance() {
-        if (NULL == Loader::$_instance) {
+        if (null == Loader::$_instance) {
             Loader::$_instance = new Loader;
         }
         return Loader::$_instance;
@@ -258,7 +207,7 @@ class Loader {
         return Registry::get($name);
     }
 
-    private static function createObject(&$class, &$name, &$args, $helper = false) {
+    private static function _createObject(&$class, &$name, &$args, $helper = false) {
         $obj = new ReflectionClass($class);
         /**
          * If object is not helper, register it in Registry

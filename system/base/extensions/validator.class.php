@@ -13,7 +13,7 @@
  * @since 0.8
  */
 class ValidatorExtension {
-    private $_errors = array('_general' => NULL);
+    private $_errors = array('_general' => null);
     private $_rules_js = array();
     private $_rules_php = array();
     private $_seporator = ' ';
@@ -37,7 +37,7 @@ class ValidatorExtension {
      * @param string $key error key
      * @return bool
      */
-    public function rule($value, $rule, $error = NULL, $key = NULL) {
+    public function rule($value, $rule, $error = null, $key = null) {
         $result = true;
         $value = trim($value);
         $res = preg_match($this->_rules_php[$rule], $value);
@@ -58,7 +58,7 @@ class ValidatorExtension {
      * @param string $key error key
      * @return bool
      */
-    public function min($value, $min, $error = NULL, $key = NULL) {
+    public function min($value, $min, $error = null, $key = null) {
         $result = true;
         $value = trim($value);
         if ($value < $min) {
@@ -78,7 +78,7 @@ class ValidatorExtension {
      * @param string $key error key
      * @return bool
      */
-    public function max($value, $max, $error = NULL, $key = NULL) {
+    public function max($value, $max, $error = null, $key = null) {
         $result = true;
         $value = trim($value);
         if ($value > $max) {
@@ -99,7 +99,7 @@ class ValidatorExtension {
      * @param string $key error key
      * @return bool
      */
-    public function minmax($value, $min, $max, $error = NULL, $key = NULL) {
+    public function minmax($value, $min, $max, $error = null, $key = null) {
         $result = true;
         $value = trim($value);
         if ($value > $max || $value < $min) {
@@ -119,7 +119,7 @@ class ValidatorExtension {
      * @param string $key error key
      * @return bool
      */
-    public function minlen($value, $min, $error = NULL, $key = NULL) {
+    public function minlen($value, $min, $error = null, $key = null) {
         $result = true;
         $value = trim($value);
         if (strlen($value) < $min) {
@@ -139,7 +139,7 @@ class ValidatorExtension {
      * @param string $key error key
      * @return bool
      */
-    public function maxlen($value, $max, $error = NULL, $key = NULL) {
+    public function maxlen($value, $max, $error = null, $key = null) {
         $result = true;
         $value = trim($value);
         if (strlen($value) > $max) {
@@ -160,7 +160,7 @@ class ValidatorExtension {
      * @param string $key error key
      * @return bool
      */
-    public function minmaxlen($value, $min, $max, $error = NULL, $key = NULL) {
+    public function minmaxlen($value, $min, $max, $error = null, $key = null) {
         $result = true;
         $value = trim($value);
         $length = strlen($value);
@@ -180,7 +180,7 @@ class ValidatorExtension {
      * @param string $key error key
      * @return bool
      */
-    public function checked($value, $error = NULL, $key = NULL) {
+    public function checked($value, $error = null, $key = null) {
         $result = true;
         if (empty($value)) {
             $this->setError($error, $key);
@@ -198,7 +198,7 @@ class ValidatorExtension {
      * @param string $key error key
      * @return bool
      */
-    public function compare($values, $error = NULL, $key = NULL) {
+    public function compare($values, $error = null, $key = null) {
         $result = true;
         $size = sizeof($values) - 1;
         for ($i = 0; $i < $size; $i++) {
@@ -243,7 +243,7 @@ class ValidatorExtension {
      */
     public function setError($error, $key) {
         $this->_result = false;
-        if ($key == NULL) {
+        if ($key == null) {
             $this->_errors['_general'] .= $error;
         }
         elseif (array_key_exists($key, $this->_errors)) {

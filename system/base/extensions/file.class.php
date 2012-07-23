@@ -13,7 +13,7 @@
  * @since 0.8
  */
 class FileExtension {
-    private $_mimes = NULL;
+    private $_mimes = null;
 
     /**
      * Save upload file.
@@ -32,13 +32,13 @@ class FileExtension {
         return true;
     }
 
-    public function checkUploadFile($file, $index = NULL) {
+    public function checkUploadFile($file, $index = null) {
         $result = true;
-        if (NULL != $file) {
+        if (null != $file) {
             /**
              * Check all files array
              */
-            if (is_array($file['error']) && $index === NULL) {
+            if (is_array($file['error']) && $index === null) {
                 $size = sizeof($file['error']);
                 for ($i = 0; $i < $size; $i++) {
                     if ($file['error'][$i] > 0 || $file['size'][$i] == 0) {
@@ -49,7 +49,7 @@ class FileExtension {
             /**
              * Check index file from array
              */
-            else if (is_array($file['error']) && $index !== NULL) {
+            else if (is_array($file['error']) && $index !== null) {
                 if (isset($file['error'][$index])) {
                     $result = ($file['error'][$index] == 0 && $file['size'][$index] > 0) ? true : false;
                 }
@@ -185,7 +185,7 @@ class FileExtension {
      *
      * @access public
      * @param string имя файла
-     * @return array or NULL
+     * @return array or null
      */
     public function getFileNameExt($file) {
         $pos = strrpos($file, '.');
@@ -209,7 +209,7 @@ class FileExtension {
      * @return bool
      */
     public function checkFileType($file_type, $allow_types) {
-        if (NULL == $this->_mimes) {
+        if (null === $this->_mimes) {
             $this->_mimes = require(Config::get('path/config').'mimes.php');
         }
         $flag = false;
@@ -227,7 +227,7 @@ class FileExtension {
                 }
             }
         }
-        if (NULL != $needle) {
+        if (null != $needle) {
             for ($i = 0; $i < sizeof($needle); $i++) {
                 if (in_array($needle[$i], $allow_types)) {
                     $flag = true;

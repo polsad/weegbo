@@ -22,14 +22,14 @@ class MessageHelper extends Helper {
     /**
      * @var array helper arguments
      */
-    private $_name = NULL;
+    private $_name = null;
 
     public function __construct($name) {
         $this->_name = Registry::isValid($name) ? $name : '';
     }
 
     public function execute($args = array()) {
-        $key = isset($args[0]) ? $args[0] : NULL;
-        return ($this->_name == NULL || $key == NULL) ? NULL : Registry::get($this->_name)->get($key);
+        $key = isset($args[0]) ? $args[0] : null;
+        return ($this->_name == null || $key == null) ? null : Registry::get($this->_name)->get($key);
     }
 }

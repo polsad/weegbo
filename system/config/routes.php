@@ -10,5 +10,6 @@
  * @since 0.8
  */
 return array(
+    'm' => 'main/m',
     'images\/captcha.jpg' => 'main/captcha/',
 );

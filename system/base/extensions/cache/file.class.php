@@ -25,7 +25,7 @@ class FileCache implements ICache {
     }
 
     public function get($key) {
-        $data = NULL;
+        $data = null;
         if (file_exists(Config::get('path/cache').$key.'.php')) {
             if (@filemtime(Config::get('path/cache').$key.'.php') > time()) {
                 $data = file_get_contents(Config::get('path/cache').$key.'.php');

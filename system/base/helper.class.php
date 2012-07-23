@@ -10,6 +10,7 @@
  * @since 0.8
  */
 abstract class Helper {
+
     /**
      * Return value from Registry by name.
      *
@@ -20,7 +21,6 @@ abstract class Helper {
     public function __get($var) {
         return Registry::get($var);
     }
-    
+
     abstract public function execute();
 }
-?>

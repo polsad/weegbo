@@ -18,10 +18,10 @@
  * @since 0.8
  */
 class CryptExtension {
-    private $_td = NULL;
-    private $_iv = NULL;
-    private $_key = NULL;
-    private $_method = NULL;
+    private $_td = null;
+    private $_iv = null;
+    private $_key = null;
+    private $_method = null;
 
 
     public function  __construct($key, $method = MCRYPT_DES) {

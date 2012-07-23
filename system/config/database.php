@@ -27,8 +27,8 @@ return array(
             'host' => 'localhost',
             'user' => 'root',
             'pass' => '',
-            'db' => 'master',
-            'prefix' => 'wgb_',
+            'db' => 'dp',
+            'prefix' => 'src_',
             'charset' => 'utf8'
         ),
         'slave' => array(
@@ -36,8 +36,8 @@ return array(
             'host' => 'localhost',
             'user' => 'root',
             'pass' => '',
-            'db' => 'slave',
-            'prefix' => 'wgb_',
+            'db' => 'dp_stat',
+            'prefix' => 'dp_',
             'charset' => 'utf8'
         )
     )

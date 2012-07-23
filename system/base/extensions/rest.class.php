@@ -10,9 +10,9 @@
  * @since 0.8
  */
 class RestExtension {
-    private $_ch = NULL;
-    private $_response_info = NULL;
-    private $_response_body = NULL;
+    private $_ch = null;
+    private $_response_info = null;
+    private $_response_body = null;
 
     public function __construct() {
     }
@@ -24,7 +24,7 @@ class RestExtension {
         }
     }
 
-    public function sendRequest($url, $method, $data = NULL) {
+    public function sendRequest($url, $method, $data = null) {
         /**
          * Set URL
          */
@@ -62,7 +62,7 @@ class RestExtension {
     }
 
     public function getRequestMethod() {
-        $result = NULL;
+        $result = null;
         if (isset($_SERVER['REQUEST_METHOD'])) {
             $methods = array('GET', 'POST', 'PUT', 'DELETE');
             $method = strtoupper($_SERVER['REQUEST_METHOD']);
@@ -102,7 +102,7 @@ class RestExtension {
 
     private function sendPostRequest($data) {
         $data = $this->buildPostData($data);
-        if (NULL != $data) {
+        if (null != $data) {
             curl_setopt($this->_ch, CURLOPT_POSTFIELDS, $data);
             curl_setopt($this->_ch, CURLOPT_POST, 1);
         }
@@ -120,7 +120,7 @@ class RestExtension {
     }
 
     private function buildPostData($data) {
-        $data = (is_array($data) && $data != NULL) ? http_build_query($data, '', '&') : NULL;
+        $data = (is_array($data) && $data != null) ? http_build_query($data, '', '&') : null;
         return $data;
     }
 

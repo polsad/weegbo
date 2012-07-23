@@ -17,7 +17,7 @@ class LoggerExtension {
     /**
      * @var resource log file resource
      */
-    private $_resource = NULL;
+    private $_resource = null;
     /**
      * @var string date format
      */
@@ -41,7 +41,7 @@ class LoggerExtension {
      * @return void
      */
     public function __destruct() {
-        if (NULL != $this->_resource) {
+        if (null != $this->_resource) {
             fclose($this->_resource);
         }
     }
@@ -71,14 +71,14 @@ class LoggerExtension {
      */
     public function setLogFile($log_path) {
         $this->_file = $log_path;
-        if (NULL != $this->_resource) {
+        if (null != $this->_resource) {
             fclose($this->_resource);
         }
         if (file_exists($this->_file)) {
             $this->_resource = fopen($this->_file, 'a+');
         }
         else {
-            $this->_resource = NULL;
+            $this->_resource = null;
         }
     }
 }

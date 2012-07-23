@@ -14,14 +14,15 @@ class Registry {
      * @var static array for objects
      */
     private static $_store = array();
+
     /**
      *
      * @var static property to hold singleton instance
      */
-    private static $_instance = NULL;
+    private static $_instance = null;
 
     public function __constuct() {
-
+        
     }
 
     /**
@@ -31,7 +32,7 @@ class Registry {
      * @return Registry
      */
     public function getInstance() {
-        if (NULL == Registry::$_instance) {
+        if (null === Registry::$_instance) {
             Registry::$_instance = new Registry;
         }
         return Registry::$_instance;
@@ -56,17 +57,14 @@ class Registry {
     }
 
     /**
-     * If object exists in store, then return object's value, else return NULL
+     * If object exists in store, then return object's value, else return null
      *
      * @access public
      * @param string $name object's name
      * @return void
      */
     public static function get($name) {
-        if (! self::isValid($name))
-            return NULL;
-        else
-            return self::$_store[$name];
+        return (!self::isValid($name)) ? null : self::$_store[$name];
     }
 
     /**
@@ -76,11 +74,12 @@ class Registry {
      * @return bool
      */
     public static function del($name) {
+        $result = false;
         if (self::isValid($name)) {
             unset(self::$_store[$name]);
-            return true;
+            $result = true;
         }
-        return false;
+        return $result;
     }
 
     /**
