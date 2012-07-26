@@ -40,12 +40,9 @@ return array(
                 'view'  
             ),
             'extensions' => array(
-                array('ajax', 'ajaxalias'),
-                array('ajax', 'ajax2'),
-                array('db', 'db', 'master'),
-                'file'
             ),
-            'models' => array('main')        
+            'models' => array(
+            )        
         ),
         'ob-gzip' => false,
         'session-name' => 'session',
@@ -57,9 +54,9 @@ return array(
      * debug/log - full path to debug log file
      */
     'debug' => array(
-        'debug' => true,
-        'profiler' => true,
-        'profiler-trace' => true,
+        'debug' => false,
+        'profiler' => false,
+        'profiler-trace' => false,
         'log' => Config::get('path/app').'error.log'
     )
 );

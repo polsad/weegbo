@@ -36,7 +36,7 @@ class Error {
             if (!Registry::isValid('view')) {
                 Loader::view();
             }
-            Registry::get('view')->display('error/error-'.$error.'.tpl', $e->getStatusCode());
+            Registry::get('view')->display('error/error-'.$e->getStatusCode().'.tpl', $e->getStatusCode());
         }
         exit();
     }

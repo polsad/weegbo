@@ -16,17 +16,6 @@ class MainController extends Controller {
     }
 
     public function index() {
-        $this->redirect('m/', 301);
-        $this->displayPage('pages/index.tpl', 400);
-    }
-    
-    public function m() {
-    }
-    /**
-     * Captcha
-     */
-    public function captcha() {
-        $this->load->extension('captcha');
-        $this->captcha->getCaptchaImage();
+        $this->displayPage('pages/index.tpl');
     }
 }
