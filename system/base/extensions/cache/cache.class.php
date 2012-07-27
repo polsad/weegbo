@@ -112,11 +112,11 @@ class CacheExtension {
                 Error::exceptionHandler($e);
             }
             catch (Exception $e) {
-                throw new CException("Cache class {$class} in file {$path} not found", 0, 500);
+                throw new CException("Cache class {$class} in file {$path} not found", 500);
             }
         }
         else {
-            throw new CException("Cache file {$path} not found", 0, 500);
+            throw new CException("Cache file {$path} not found", 500);
         }
     }
 

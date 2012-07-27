@@ -40,7 +40,7 @@ abstract class Controller {
          */
         if (!method_exists($this, $action)) {
             if (Config::get('app/router')) {
-                $this->displayErrorPage(404);
+                $this->displayPage('errors/error-404.tpl', 404);
             }
             else {
                 $action = 'index';
@@ -64,7 +64,7 @@ abstract class Controller {
         /**
          * If statistic enable, and page is render, show statistic
          */
-        if (Config::get('debug/profiler')) {
+        if (Config::get('profiler/level')) {
             Profiler::showResult();
         }
         exit();

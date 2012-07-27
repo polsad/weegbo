@@ -31,48 +31,42 @@ class Base {
         require_once($config['path']['base'].'config.class.php');
         Config::load($config, 'array');
         Config::load(Config::get('config/config'));
-        
         /**
          * Enable profiler
          */
-        if (Config::get('debug/profiler')) {
+        if (Config::get('profiler/level')) {
             require_once(Config::get('path/base').'profiler.class.php');
             Profiler::add("Config loaded");
         }
         /**
-         * Include static classes exception and error, set error handler Error::codeError method.
-         */
-        require_once(Config::get('path/base').'exception.class.php');
-        require_once(Config::get('path/base').'error.class.php');
-        set_error_handler(create_function('$c, $m, $f, $l', 'Error::errorHandler($m, $c, $f, $l);'), E_ALL ^ E_NOTICE);
-        /**
-         * Include class Registry, Loader and Input
+         * Include static classes 
          */
         require_once(Config::get('path/base').'registry.class.php');
-        require_once(Config::get('path/base').'loader.class.php');
-        require_once(Config::get('path/base').'input.class.php');
+        require_once(Config::get('path/base').'exception.class.php');
+        require_once(Config::get('path/base').'error.class.php');
+        require_once(Config::get('path/base').'loader.class.php');     
+        require_once(Config::get('path/base').'input.class.php');        
+        /**
+         * Set errors handlers
+         */
+        Error::setErrorsHandlers();
         /**
          * Set Loader, Input, Config to Register.
          */
         Registry::set('config', Config::getInstance());
         Registry::set('load', Loader::getInstance());
         Registry::set('input', Input::getInstance());
-        if (Config::get('debug/profiler')) {
+        if (Config::get('profiler/level')) {
             Profiler::add("Static framework classes loaded");
         }
         /**
          * Application routing.
          */
-        try {
-            self::routing();
-        }
-        catch (CException $e) {
-            Error::exceptionHandler($e);
-        }
+        self::routing();
         /**
          * Show profiler data
          */
-        if (Config::get('debug/profiler')) {
+        if (Config::get('profiler/level')) {
             Profiler::showResult();
         }
     }
@@ -90,12 +84,13 @@ class Base {
             'cookie' => &$_COOKIE,
             'files' => &$_FILES,
             'uri' => array(),
-            'domain' => array()
+            'host' => array(),
+            'scheme' => 'http'
         );
-
-        self::parseDomain($_SERVER['HTTP_HOST'], $data['domain']);
-        self::parseUrl(substr($_SERVER['REQUEST_URI'], 1), $data['uri']);
-
+        /**
+         * Parse url
+         */
+        self::parseUrl($data);
         /**
          * Detect controller name
          */
@@ -125,45 +120,57 @@ class Base {
         Registry::get('controller')->execute($action);
     }
 
-    public function sendHttpCode($code) {
-        if ($this->_http_codes === null) {
-            if (null === $this->_http_codes && file_exists(Config::get('path/config').'http-codes.php')) {
-                $this->_http_codes = require_once(Config::get('path/config').'http-codes.php');
+    /**
+     * Посылает заголовок с HTTP кодом
+     */
+    public static function sendHttpCode($code) {
+        if (self::$_http_codes === null) {
+            if (null === self::$_http_codes && file_exists(Config::get('path/config').'http-codes.php')) {
+                self::$_http_codes = require_once(Config::get('path/config').'http-codes.php');
             }
         }
-        if (array_key_exists($code, $this->_http_codes)) {
-            Header("HTTP/1.1 {$code} {$this->_http_codes[$code]}");
+        if (array_key_exists($code, self::$_http_codes)) {
+            Header("HTTP/1.1 {$code} ".self::$_http_codes[$code]);
         }
     }
-
+    
     /**
-     * Parse URL for obtaining domain and subdomains.
-     *
-     * @param string $url
-     * @param link $domain array with domain/subdomain segments
-     * @return void
-     */
-    private function parseDomain($url, &$domain) {
-        preg_match_all("/([^.]+)\.?/", $url, $matches);
-        $domain = $matches[1];
-    }
-
-    /**
-     * Parse URL on URI and GET segments.
+     * Парсинг урла 
      *
      * @access private
-     * @param string $url
-     * @param link $uri array with URI segments
-     * @param link $get array with GET segment
-     * @return void
-     */
-    private static function parseUrl($url, &$uri) {
-        $uri = strpos($url, '?');
-        $uri = ($uri === false) ? $url : substr($url, 0, $uri);
-        if (Config::get('app/router')) {
-            $uri = self::replaceUrl($uri);
+     * @param array ссылка на массив значений
+     * @return string
+     */    
+    private static function parseUrl(&$data) {
+        $data['scheme'] = (isset($_SERVER['HTTPS'])) ? 'https' : 'http';
+        $buff = "{$data['scheme']}://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
+        $buff = parse_url($buff);
+        // If parse_url return false
+        if ($buff == false) {
+            $buff = self::manualParseUrl();
         }
-        $uri = explode('/', $uri);
+        $data['host'] = explode('.', $buff['host']);
+        $buff['path'] = ltrim($buff['path'], '/');
+        if (Config::get('app/router')) {
+            $buff['path'] = self::replaceUrl($buff['path'] );
+        }
+        $data['uri'] = explode('/', $buff['path']);
+    }
+    
+    /**
+     * Парсинг урла в случае если parse_url вернула false
+     *
+     * @access private
+     * @return string
+     */
+    private static function manualParseUrl() {
+        $res = array();
+        preg_match_all("/([^.]+)\.?/", $_SERVER['HTTP_HOST'], $matches);
+        $res['host'] = $matches[1];
+        $res['path'] = $_SERVER['REQUEST_URI'];
+        $pos = strpos($res['path'], '?');
+        $res['path'] = ($pos === false) ? $res['path'] : substr($res, 0, $pos); 
+        return $res;              
     }
 
     /**
@@ -175,7 +182,7 @@ class Base {
      * @return string
      */
     private static function replaceUrl($url) {
-        $routes = require_once(Config::get('config/router'));
+        $routes = require(Config::get('config/router'));
         foreach ($routes as $k => $v) {
             $pattern = '/^'.$k.'[\/]?$/';
             if (preg_match($pattern, $url)) {
@@ -189,7 +196,7 @@ class Base {
     /**
      * Автозагрузка компонентов
      */
-    private final function autoloadComponents() {
+    private static final function autoloadComponents() {
         /**
          * Load base components
          */

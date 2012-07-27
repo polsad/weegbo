@@ -45,7 +45,7 @@ class Input {
      * @param string $key
      * @param mixed $true result in success
      * @param mixed $false result in unsuccess
-     * @param string $index get, post, cookie, domain or uri
+     * @param string $index get, post, cookie, host or uri
      * @return mixed
      */
     public static function checkData($key, $true, $false, $index) {
@@ -127,8 +127,8 @@ class Input {
      * @param mixed $false result in unsuccess
      * @return mixed
      */
-    public static function checkDomain($key, $true = true, $false = false) {
-        return self::checkData($key, $true, $false, 'domain');
+    public static function checkHost($key, $true = true, $false = false) {
+        return self::checkData($key, $true, $false, 'host');
     }
 
     /**
@@ -138,7 +138,7 @@ class Input {
      * @param string $key
      * @param string $type type 'int', 'string', 'float', 'bool', 'array'
      * @param mixed $default default result
-     * @param string $index get, post, cookie, domain or uri
+     * @param string $index get, post, cookie, host or uri
      * @return mixed
      */
     public static function getData($key, $type, $default, $index) {
@@ -218,7 +218,7 @@ class Input {
     }
 
     /**
-     * Return DOMAIN data
+     * Return HOST data
      *
      * @access public
      * @param string $key
@@ -226,8 +226,8 @@ class Input {
      * @param mixed $default default result, null by default
      * @return mixed
      */
-    public static function domain($key, $type = 'string', $default = null) {
-        return self::getData($key, $type, $default, 'domain');
+    public static function host($key, $type = 'string', $default = null) {
+        return self::getData($key, $type, $default, 'host');
     }
 
     /**
@@ -236,7 +236,7 @@ class Input {
      * @access public
      * @param string $key
      * @param mixed $value
-     * @param string $index get, post, cookie, domain or uri
+     * @param string $index get, post, cookie, host or uri
      * @return void
      */
     public static function setData($key, $value, $index) {

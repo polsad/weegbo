@@ -14,8 +14,17 @@ class Loader {
      * @var static property to hold singleton instance
      */
     private static $_instance = null;
+    /**
+     * @var static array containt base names base components 
+     */
     private static $_base = array('view');
 
+    /**
+     * Static method for loading base component
+     *
+     * @access public
+     * @return void
+     */
     public static function base() {
         $args = func_get_args();
         $base = isset($args[0]) ? strtolower($args[0]) : null;
@@ -42,7 +51,7 @@ class Loader {
             $class = ucwords($controller).'Controller';
             try {
                 self::_createObject($class, $name, $args);
-                if (Config::get('debug/profiler')) {
+                if (Config::get('profiler/level')) {
                     Profiler::add("Controller class {$class} loaded", 'load-controller');
                 }
             }
@@ -50,11 +59,11 @@ class Loader {
                 Error::exceptionHandler($e);
             }
             catch (Exception $e) {
-                throw new CException("Controller class {$class} in file {$controller}.class.php not found", 1, 404);
+                throw new CException("Controller class {$class} in file {$controller}.class.php not found", 404);
             }
         }
         else {
-            throw new CException("Controller file {$controller}.php not found", 1, 404);
+            throw new CException("Controller file {$controller}.php not found", 404);
         }
     }
 
@@ -80,13 +89,13 @@ class Loader {
             require_once(Config::get('path/extensions').$extension.'/'.$extension.'.class.php');
         }
         else {
-            throw new CException("Extension file {$extension}.class.php not found", 0, 500);
+            throw new CException("Extension file {$extension}.class.php not found", 500);
         }
 
         $class = ucfirst($extension).'Extension';
         try {
             self::_createObject($class, $name, $args);
-            if (Config::get('debug/profiler')) {
+            if (Config::get('profiler/level')) {
                 Profiler::add("Extension class {$class} loaded", 'load-extension');
             }
         }
@@ -94,7 +103,7 @@ class Loader {
             Error::exceptionHandler($e);
         }
         catch (Exception $e) {
-            throw new CException("Extension class {$class} in file {$extension}.class.php not found", 0, 500);
+            throw new CException("Extension class {$class} in file {$extension}.class.php not found", 500);
         }
     }
 
@@ -117,12 +126,12 @@ class Loader {
             require_once(Config::get('path/helpers').$helper.'.class.php');
         }
         else {
-            throw new CException("Helper file {$helper}.class.php not found", 2, 500);
+            throw new CException("Helper file {$helper}.class.php not found", 500);
         }
         $class = ucfirst($helper).'Helper';
         try {
             self::_createObject($class, $name, $args, true);
-            if (Config::get('debug/profiler')) {
+            if (Config::get('profiler/level')) {
                 Profiler::add("Helper class {$class} loaded", 'load-helper');
             }
         }
@@ -130,7 +139,7 @@ class Loader {
             Error::exceptionHandler($e);
         }
         catch (Exception $e) {
-            throw new CException("Helper class {$class} in file {$helper}.class.php not found", 0, 500);
+            throw new CException("Helper class {$class} in file {$helper}.class.php not found", 500);
         }
     }
 
@@ -152,7 +161,7 @@ class Loader {
             $class = ucfirst($model).'Model';
             try {
                 self::_createObject($class, $name, $args);
-                if (Config::get('debug/profiler')) {
+                if (Config::get('profiler/level')) {
                     Profiler::add("Model class {$class} loaded", 'load-model');
                 }
             }
@@ -160,11 +169,11 @@ class Loader {
                 Error::exceptionHandler($e);
             }
             catch (Exception $e) {
-                throw new CException("Model class {$class} in file {$model}.class.php not found", 0, 500);
+                throw new CException("Model class {$class} in file {$model}.class.php not found", 500);
             }
         }
         else {
-            throw new CException("Model file {$model}.class.php not found", 0, 500);
+            throw new CException("Model file {$model}.class.php not found", 500);
         }
     }
 

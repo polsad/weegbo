@@ -16,7 +16,7 @@ class ApcCache implements ICache {
 
     public function __construct() {
         if (!extension_loaded('apc')) {
-            throw new CException('ApcCache requires PHP apc extension to be loaded', 6, 500);
+            throw new CException('ApcCache requires PHP apc extension to be loaded', 500);
         }
     }
 

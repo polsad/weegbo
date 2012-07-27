@@ -141,7 +141,7 @@ class View {
      */
     private function checkFileTemplate($templete) {
         if (!file_exists(Config::get('path/tmpls').$templete)) {
-            throw new CException("Template file {$templete} not found", 2);
+            throw new CException("Template file {$templete} not found", 500);
         }
         return true;
     }

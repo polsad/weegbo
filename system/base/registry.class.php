@@ -48,7 +48,7 @@ class Registry {
      */
     public static function set($name, $value) {
         if (self::isValid($name)) {
-            throw new CException("Name '{$name}' used yet.", 2, 500);
+            throw new CException("Name '{$name}' used yet.", 500);
         }
         else {
             self::$_store[$name] = $value;

@@ -28,7 +28,12 @@ class Profiler {
             $time = round($time, 4);
         }
         self::$_data[] = array(round(microtime(true) - START_TIME, 4), round(memory_get_usage() / 1024, 2), $message, $time);
-        self::$_count[$type] += 1;
+        if (! isset(self::$_count[$type])) {
+            self::$_count[$type] = 1;
+        }
+        else {
+            self::$_count[$type] += 1;
+        }
     }
 
     public static function showResult() {
@@ -68,7 +73,7 @@ class Profiler {
         $result[] = "Total time {$time} sec. Memory {$memory} Kb.";
         $result[] = ($counts[0] != null) ? "Loaded: {$counts[0]}. " : "";
         $result[] = ($counts[1] != null) ? "Database: {$counts[1]}. " : "";
-        if (Config::get('debug/profiler-trace')) {
+        if (Config::get('profiler/level') == 2) {
             $result[] = "Trace:";
             foreach (self::$_data as $k => $v) {
                 $result[] = ($v[3] == '') ? "{$v[0]} sec, {$v[1]} Kb - {$v[2]}" : "{$v[0]} sec, {$v[1]} Kb - {$v[2]} ({$v[3]} sec)";

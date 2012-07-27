@@ -10,5 +10,4 @@
  * @since 0.8
  */
 return array(
-    'images\/captcha.jpg' => 'main/captcha/',
 );

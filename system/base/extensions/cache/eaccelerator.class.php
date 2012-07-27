@@ -16,7 +16,7 @@ class EacceleratorCache implements ICache {
 
     public function __construct() {
         if (!extension_loaded('eaccelerator_get')) {
-            throw new CException('EacceleratorCache requires PHP eaccelerator extension to be loaded', 6, 500);
+            throw new CException('EacceleratorCache requires PHP eaccelerator extension to be loaded', 500);
         }
     }
 

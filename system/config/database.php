@@ -22,5 +22,14 @@ return array(
      * database/xxxxx/charset - database character
      */
     'database' => array(
+        'master' => array(
+            'driver' => 'mysql',
+            'host' => 'localhost',
+            'user' => 'root',
+            'pass' => '',
+            'db' => 'dp',
+            'prefix' => 'src_',
+            'charset' => 'utf8'
+        )
     )
 );

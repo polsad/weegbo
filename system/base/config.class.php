@@ -39,7 +39,7 @@ class Config {
                 break;
             default:
                 if (file_exists($config)) {
-                    $config = require_once($config);
+                    $config = require($config);
                     $aliases = array();
                     self::setAliases($config, $aliases);
                     self::$_config = array_merge_recursive(self::$_config, $aliases);
@@ -98,11 +98,11 @@ class Config {
      * @param string $prefix - if prefix !== null, delete it from aliases
      * @return array
      */
-    public function convertToArray($aliases, $prefix = null) {
+    public static function convertToArray($aliases, $prefix = null) {
         $result = array();
-        $len = ($prefix === null) ? 0 : strlen($prefix);
+        $lenght = ($prefix === null) ? 0 : strlen($prefix);
         foreach ((array) $aliases as $k => $v) {
-            $keys = ($prefix === null) ? $k : substr($k, $len);
+            $keys = ($prefix === null) ? $k : substr($k, $lenght);
             $keys = explode('/', $keys);
             $vals = &$result;
             foreach ($keys as $key) {

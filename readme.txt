@@ -3,6 +3,8 @@
     Обновлены jQuery до 1.7.2 и HTMLPurfier до 4.4.0
     Рефакторинг base/* классов
     Уменьшено время загрузки
+    Полностью переработан Error + Extension классы
+    Добавлены debug levels
 
 0.8.13
     Добавлен метод rowCount - возращает число записей при INSERT, UPDATE, DELETE

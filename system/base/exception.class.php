@@ -13,19 +13,13 @@
  */
 class CException extends Exception {
     /**
-     * @var int trace index
-     */
-    protected $_traceIndex = 1;
-
-    /**
      * @var int HTTP status code
      */
-    protected $_statusCode = 500;
+    protected $_httpCode = 500;
 
-    public function __construct($message, $traceIndex = null, $statusCode = null) {
-        $this->_traceIndex = ($traceIndex === null) ? $this->_traceIndex : $traceIndex;
-        $this->_statusCode = ($statusCode === null) ? $this->_statusCode : $statusCode;
-        parent::__construct($message, null);
+    public function __construct($message, $httpCode = null) {
+        $this->_httpCode = ($httpCode === null) ? $this->_httpCode : $httpCode;
+        parent::__construct($message);
     }
 
     /**
@@ -33,14 +27,6 @@ class CException extends Exception {
      * @return int HTTP status code
      */
     public function getStatusCode() {
-        return $this->_statusCode;
-    }
-
-    /**
-     * @access public
-     * @return int trace index
-     */
-    public function getTraceIndex() {
-        return $this->_traceIndex;
+        return $this->_httpCode;
     }
 }

@@ -20,7 +20,7 @@ return array(
      *    app/cache/server/host - option only for memcache system. Memcache server.
      *    app/cache/server/port - option only for memcache system. Memcache port.
      * app/autoload - компоненты которые будут загруженны автоматически
-     *    app/autoload/base - основные компоненты (db, view)
+     *    app/autoload/base - основные компоненты (view)
      *    app/autoload/extensions - расширения
      *    app/autoload/models - модели
      * app/ob-gzip - enable/disable gzip compression
@@ -40,6 +40,7 @@ return array(
                 'view'  
             ),
             'extensions' => array(
+                array('db', 'db', 'master')
             ),
             'models' => array(
             )        
@@ -49,14 +50,28 @@ return array(
     ),  
     /**
      * Debug options
-     * debug/debug - enable or disable debug (Load errors, Db errors, etc...)
-     * debug/statistic - enable or disable statistics collection
-     * debug/log - full path to debug log file
+     * debug/level - debug level
+     *    0 - all errors and exceptions hide, all logging by default // Production level
+     *    1 - all errors and exceptions hide, all errors writing to 'debug/file' file
+     *    2 - all errors and exceptions hide, all errors sending to 'debug/email'
+     *    3 - all errors show, error_reporting(debug/error-level)
+     * debug/file - full path to debug log file
+     * debug/email - email for error messages
      */
     'debug' => array(
-        'debug' => false,
-        'profiler' => false,
-        'profiler-trace' => false,
-        'log' => Config::get('path/app').'error.log'
+        'level' => 3,
+        'file' => Config::get('path/app').'error.log',
+        'email' => 'polsad@gmail.com',
+        'error-level' => E_ALL ^ E_NOTICE
+    ),
+    /**
+     * Profiler option
+     * profiler/level - profiler level
+     *    0 - disable
+     *    1 - show statistic
+     *    2 - show statistic and trace
+     */
+    'profiler' => array(
+        'level' => 2
     )
 );

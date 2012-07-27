@@ -16,6 +16,33 @@
  */
 class Error {
 
+    public static function setErrorsHandlers() {
+        // If debug/level <= 2 - hide errors
+        if (Config::get('debug/level') <=2) {
+            error_reporting(0);
+            set_error_handler(array('Error', 'errorHandler'), Config::get('debug/error-level'));
+            register_shutdown_function(array('Error', 'fatalErrorHandler'));
+        }
+        else {
+            error_reporting(Config::get('debug/error-level'));
+        }
+        set_exception_handler(array('Error' ,'exceptionHandler'));
+    }
+
+    public static function errorHandler($errno, $errstr, $errfile, $errline) {
+        Error::exceptionHandler(new ErrorException($errstr, $errno, 0, $errfile, $errline));    
+    }
+
+    public static function fatalErrorHandler() {
+        $error = error_get_last();
+        if (($error['type'] === E_ERROR) || ($error['type'] === E_USER_ERROR)) {
+            Error::exceptionHandler(new ErrorException($error['message'], $error['type'], 0, $error['file'], $error['line']));   
+        }
+        else {
+            return true;
+        }
+    }    
+    
     /**
      * Display or write to log exception error.
      *
@@ -23,71 +50,42 @@ class Error {
      * @param object $e exception
      * @return void
      */
-    public static function exceptionHandler(&$e) {
-        $trace = $e->getTrace();
-        $traceIndex = $e->getTraceIndex();
-        if (Config::get('debug/debug')) {
-            echo "Error: {$e->getMessage()}.<br>File:  {$trace[$traceIndex]['file']}<br>Line:  {$trace[$traceIndex]['line']}<br>";
-            echo '<pre>'; print_r($trace); echo '</pre>';
+    public static function exceptionHandler($e) {
+        $class = get_class($e); 
+        $code = ($class == 'CException') ? $e->getStatusCode() : 500;
+        // Если status code == 500, это значит что произошла ошибка
+        // либо было выброшено исключение CException со статус кодом 500 (т.е. ошибка загрузки и т.д.)
+        if ($code == 500) {
+            $error = "Error: {$e->getMessage()} File: {$e->getFile()} Line: {$e->getLine()}";
+            // В зависимости от уровня debug формируем и логгируем ошибки
+            switch (Config::get('debug/level')) {
+                // Уровень 0 - ошибки не отображаются логгируем ошибки по умолчанию
+                case 0:
+                    error_log("Error: {$e->getMessage()} File: {$e->getFile()} Line: {$e->getLine()}");
+                break;            
+                // Уровень 1 - ошибки не отображаются, все записывается в файл debug/debug-logfile
+                case 1:
+                    error_log("[".date('D M j G:i:s Y')."] {$error}\n", 3, Config::get('debug/file'));
+                break;
+                // Уровень 2 - ошибки не отображаются, сообщение с ошибками отсылается на debug/email
+                case 2:
+                    $host = (isset($_SERVER['HTTPS'])) ? 'https' : 'http';
+                    $host = "{$host}://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
+                    error_log("Host: {$host}\nDate: ".date('D M j G:i:s Y')."\nUser agent: {$_SERVER['HTTP_USER_AGENT']}\n{$error}\n", 1, Config::get('debug/email'));
+                break;
+            }            
+        }
+        if (Config::get('debug/level') == 3) {
+            echo '<pre>'; print_r($e); echo '</pre>';
         }
         else {
-            $message = "Exception: {$e->getMessage()} in {$trace[$traceIndex]['file']} on line {$trace[$traceIndex]['line']}";
-            self::writeError($message);
-            if (!Registry::isValid('view')) {
+            if (false == Registry::isValid('view')) {
                 Loader::view();
             }
-            Registry::get('view')->display('error/error-'.$e->getStatusCode().'.tpl', $e->getStatusCode());
-        }
-        exit();
-    }
-
-    /**
-     * Display or write to log code error (PHP error_handler).
-     *
-     * @access public
-     * @param string $message error message
-     * @param int $code error code
-     * @param string $file error file
-     * @param int $line error line
-     * @return void
-     */
-    public static function errorHandler($message, $code, $file, $line) {
-        $types = array(
-            E_ERROR => "Error",
-            E_WARNING => "Warning",
-            E_PARSE => "Parsing Error",
-            E_NOTICE => "Notice",
-            E_CORE_ERROR => "Core Error",
-            E_CORE_WARNING => "Core Warning",
-            E_COMPILE_ERROR => "Compile Error",
-            E_COMPILE_WARNING => "Compile Warning",
-            E_USER_ERROR => "User Error",
-            E_USER_WARNING => "User Warning",
-            E_USER_NOTICE => "User Notice",
-            E_STRICT => "Runtime Notice"
-        );
-        $message = "{$types[$code]} ({$code}) - {$message} in {$file} on line {$line}";
-        if (Config::get('debug/debug')) {
-            echo $message, '<br>';
-        }
-        else {
-            self::writeError($message);
-        }
-    }
-
-    /**
-     * Write message to log file.
-     *
-     * @access private
-     * @param string $message
-     * @return void
-     */
-    private static function writeError($message) {
-        if (file_exists(Config::get('debug/log'))) {
-            if (!Registry::isValid('logger')) {
-                Loader::extension('logger', null, Config::get('debug/log'));
-            }
-            Registry::get('logger')->setMessage($message);
+            // Отправляем заголовок с кодом ошибки
+            Base::sendHttpCode($code);            
+            Registry::get('view')->display('errors/error-'.$code.'.tpl');
+            exit();
         }
     }
 }

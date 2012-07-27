@@ -17,11 +17,11 @@ class MemcacheCache implements ICache {
 
     public function __construct() {
         if (!extension_loaded('memcache_add_server')) {
-            throw new CException("MemcacheCache requires PHP memcache extension to be loaded", 6, 500);
+            throw new CException("MemcacheCache requires PHP memcache extension to be loaded", 500);
         }
         else {
             if (!is_array(Config::get('app/cache/server'))) {
-                throw new CException("Can't load server configuration", 6, 500);
+                throw new CException("Can't load server configuration", 500);
             }
             $this->_server = new Memcache;
             foreach ((array) Config::get('app/cache/server') as $server) {

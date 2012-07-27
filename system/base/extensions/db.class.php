@@ -34,6 +34,11 @@ class DbExtension {
     private $_prefix = null;
 
     /**
+     * @var string $_connect connect name
+     */
+    private $_connect = null;
+
+    /**
      * @var int $_time 
      */
     private $_time;
@@ -72,17 +77,19 @@ class DbExtension {
             if (Config::get('database', true) == null) {
                 Config::load(Config::get('config/database'));
             }
-            $this->_pdo = new PDO(Config::get("database/{$connect}/driver").':host='.Config::get("database/{$connect}/host").';dbname='.Config::get("database/{$connect}/db").';charset='.Config::get("database/{$connect}/charset"), Config::get("database/{$connect}/user"), Config::get("database/{$connect}/pass"));
-            if (Config::get('debug/debug')) {
-                $this->_pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            if (Config::get("database/{$connect}", true) == null) {
+                throw new CException("Can't find '{$connect}' connection in database config", 500);
             }
+            $this->_pdo = new PDO(Config::get("database/{$connect}/driver").':host='.Config::get("database/{$connect}/host").';dbname='.Config::get("database/{$connect}/db").';charset='.Config::get("database/{$connect}/charset"), Config::get("database/{$connect}/user"), Config::get("database/{$connect}/pass"));
+            $this->_pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $this->_prefix = Config::get("database/{$connect}/prefix");
-            if (Config::get('debug/profiler')) {
+            $this->_connect = $connect;
+            if (Config::get('profiler/level')) {
                 Profiler::add("Db connected to {$connect}", 'db-connect');
             }
         }
         catch (PDOException $e) {
-            throw new CException($e->getMessage(), 1, 500);
+            throw new CException($e->getMessage(), 500);
         }
     }
 
@@ -310,7 +317,7 @@ class DbExtension {
             $result = $this->_sth->execute();
         }
         catch (PDOException $e) {
-            throw new CException($e->getMessage(), 1, 500);
+            throw new CException($e->getMessage(), 500);
         }
         return $result;
     }
@@ -460,7 +467,7 @@ class DbExtension {
                 $this->_time = microtime(true);
                 break;
             case 'finish':
-                if (Config::get('debug/profiler')) {
+                if (Config::get('profiler/level')) {
                     Profiler::add("DB query to ".$this->_connect." - ".$this->_query, 'db-query', microtime(true) - $this->_time);
                 }
                 $this->_time = 0.00;
