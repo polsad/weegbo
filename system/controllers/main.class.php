@@ -17,8 +17,7 @@ class MainController extends Controller {
 
     public function index() {
     	//$this->load->extension('cache', 'cache', 'apc');
-
-       // $user = $this->db->select('SELECT * FROM ?_webi LIMIT 0,2');
+       
         $this->displayPage('pages/index.tpl');
     }
 }

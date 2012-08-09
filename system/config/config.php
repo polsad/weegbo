@@ -29,25 +29,28 @@ return array(
     'app' => array(
         'default-controller' => 'main',
         'router' => true,
-        'cache' => array(
-            'driver' => 'file',
-            'server' => array(
-                array('host' => '', 'port' => '')
-            )
-        ),
         'autoload' => array(
             'base' => array(
-                'view'  
+                'view' => 'view'
             ),
             'extensions' => array(
-                array('db', 'db', 'master')
+                'db' => array(
+                    'db' => 'master'
+                ),
+                'cache' => array(
+                    'cache' => array(
+                        'driver' => 'file',
+                        'server' => array('host' => '', 'port' => '')
+                    )
+                ),
             ),
             'models' => array(
-            )        
+                'main' => 'main'
+            )
         ),
         'ob-gzip' => false,
         'session-name' => 'session',
-    ),  
+    ),
     /**
      * Debug options
      * debug/level - debug level

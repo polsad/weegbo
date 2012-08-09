@@ -70,7 +70,6 @@ class DbExtension {
      * @param string $connect connection name in daatabase config
      * @return void
      */
-    
     public function __construct($connect) {
         try {
             // If not loaded, load database config
@@ -474,5 +473,4 @@ class DbExtension {
                 break;
         }
     }
-
 }

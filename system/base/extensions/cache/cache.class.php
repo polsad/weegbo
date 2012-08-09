@@ -24,12 +24,31 @@ class CacheExtension {
      * @param string $cache cache system
      * @return void
      */
-    public function __construct($cache = null) {
-        if (null === $cache) {
-            $this->init(Config::get('app/cache/driver'));
+    public function __construct($config = null) {
+        if (null === $config) {
+            throw new CException("Unknown cache driver. ", 500);
+        }
+        if (false === isset($config['driver'])) {
+            throw new CException("Can't find driver in config. ", 500);
+        }
+        $path = "cache/".strtolower($config['driver']).'.class.php';
+        if (file_exists(Config::get('path/extensions').$path)) {
+            require_once(Config::get('path/extensions').$path);
+            try {
+                $class = ucfirst($config['driver']).'Cache';
+                // Delete driver from config
+                unset($config['driver']);
+                $this->_cache = new $class($config);
+            }
+            catch (CException $e) {
+                Error::exceptionHandler($e);
+            }
+            catch (Exception $e) {
+                throw new CException("Cache class {$class} in file {$path} not found", 500);
+            }
         }
         else {
-            $this->init($cache);
+            throw new CException("Cache file {$path} not found", 500);
         }
     }
 
@@ -91,33 +110,6 @@ class CacheExtension {
      */
     public function flush() {
         $this->_cache->flush();
-    }
-
-    /**
-     * Init cache system
-     *
-     * @access public
-     * @param string $cache 'apc', 'file', 'eaccelerator', 'memcache'
-     * @return void
-     */
-    private function init($cache) {
-        $path = "cache/".strtolower($cache).'.class.php';
-        if (file_exists(Config::get('path/extensions').$path)) {
-            require_once(Config::get('path/extensions').$path);
-            try {
-                $class = ucfirst($cache).'Cache';
-                $this->_cache = new $class;
-            }
-            catch (CException $e) {
-                Error::exceptionHandler($e);
-            }
-            catch (Exception $e) {
-                throw new CException("Cache class {$class} in file {$path} not found", 500);
-            }
-        }
-        else {
-            throw new CException("Cache file {$path} not found", 500);
-        }
     }
 
     /**

@@ -15,7 +15,9 @@ require_once('cache.interface.php');
 class MemcacheCache implements ICache {
     private $_server = null;
 
-    public function __construct() {
+    public function __construct($config) {
+        echo '<pre>'; print_r($config); echo '</pre>';
+        
         if (!extension_loaded('memcache_add_server')) {
             throw new CException("MemcacheCache requires PHP memcache extension to be loaded", 500);
         }

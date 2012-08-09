@@ -44,8 +44,8 @@ class Base {
         require_once(Config::get('path/base').'registry.class.php');
         require_once(Config::get('path/base').'exception.class.php');
         require_once(Config::get('path/base').'error.class.php');
-        require_once(Config::get('path/base').'loader.class.php');     
-        require_once(Config::get('path/base').'input.class.php');        
+        require_once(Config::get('path/base').'loader.class.php');
+        require_once(Config::get('path/base').'input.class.php');
         /**
          * Set errors handlers
          */
@@ -133,14 +133,14 @@ class Base {
             Header("HTTP/1.1 {$code} ".self::$_http_codes[$code]);
         }
     }
-    
+
     /**
      * Парсинг урла 
      *
      * @access private
      * @param array ссылка на массив значений
      * @return string
-     */    
+     */
     private static function parseUrl(&$data) {
         $data['scheme'] = (isset($_SERVER['HTTPS'])) ? 'https' : 'http';
         $buff = "{$data['scheme']}://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
@@ -152,11 +152,11 @@ class Base {
         $data['host'] = explode('.', $buff['host']);
         $buff['path'] = ltrim($buff['path'], '/');
         if (Config::get('app/router')) {
-            $buff['path'] = self::replaceUrl($buff['path'] );
+            $buff['path'] = self::replaceUrl($buff['path']);
         }
         $data['uri'] = explode('/', $buff['path']);
     }
-    
+
     /**
      * Парсинг урла в случае если parse_url вернула false
      *
@@ -169,8 +169,8 @@ class Base {
         $res['host'] = $matches[1];
         $res['path'] = $_SERVER['REQUEST_URI'];
         $pos = strpos($res['path'], '?');
-        $res['path'] = ($pos === false) ? $res['path'] : substr($res, 0, $pos); 
-        return $res;              
+        $res['path'] = ($pos === false) ? $res['path'] : substr($res, 0, $pos);
+        return $res;
     }
 
     /**
@@ -211,7 +211,14 @@ class Base {
         foreach ($components as $k => $v) {
             if (true === array_key_exists($k, $autoload)) {
                 foreach ($autoload[$k] as $l => $m) {
-                    $vals = is_array($m) ? (is_int($l)) ? $m : array_merge(array($l), $m)  : (array) $m;
+                    if (is_array($m)) {
+                        foreach ($m as $alias => $params) {
+                            $vals = array($l, $alias, $params);
+                        }
+                    }
+                    else {
+                        $vals = array($l, $m);
+                    }
                     call_user_func_array("Loader::$v", $vals);
                 }
             }
