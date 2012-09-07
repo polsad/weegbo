@@ -51,6 +51,7 @@ $config = array_merge_recursive($config,
             'extensions' => $config['path']['base'].'extensions/',
             'helpers' => $config['path']['base'].'helpers/',
             'libs' => $config['path']['app'].'libraries/',
+            'messages' => $config['path']['app'].'messages/',
             'models' => $config['path']['app'].'models/',
             'tmpls' =>  $config['path']['app'].'tmpls/'
         )

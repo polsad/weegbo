@@ -11,16 +11,25 @@
  */
 class RestExtension {
     private $_ch = null;
+    private $_config = array(
+        'user' => '',
+        'password' => '',
+        'ssl' => false,
+        'timeout' => 10,
+        'headers' => array()
+    );
     private $_response_info = null;
     private $_response_body = null;
 
-    public function __construct() {
+    public function __construct($config = null) {
+        $this->setConfig($config);
     }
 
-    public function setAuth($username, $password) {
-        if ($username != '' && $password != '') {
-            curl_setopt($this->_ch, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
-            curl_setopt($this->_ch, CURLOPT_USERPWD, $username.':'.$password);
+    public function setConfig($config) {
+        if ($config !== null && is_array($config) == true) {
+            foreach ($this->_config as $k => $v) {
+                $this->_config[$k] = (array_key_exists($k, $config) === false) ? $v : $config[$k];
+            }
         }
     }
 
@@ -28,36 +37,27 @@ class RestExtension {
         /**
          * Set URL
          */
-        $this->_ch = curl_init();
-        curl_setopt($this->_ch, CURLOPT_TIMEOUT, 10);
-        curl_setopt($this->_ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($this->_ch, CURLOPT_URL, $url);
-
+        $this->_initConfig();
         $method = strtoupper($method);
-        try {
-            /**
-             * Set URL
-             */
-            switch ($method) {
-                case 'GET':
-                    $this->sendGetRequest();
-                    break;
-                case 'POST':
-                    $this->sendPostRequest($data);
-                    break;
-                case 'PUT':
-                    $this->sendPutRequest($data);
-                    break;
-                case 'DELETE':
-                    $this->sendDeleteRequest();
-                    break;
-                default:
-                    throw new Exception("Current methos ($method) is an invalid REST method.");
-            }
-        }
-        catch (Exception $e) {
-            curl_close($this->_ch);
-            throw $e;
+        /**
+         * Set URL
+         */
+        switch ($method) {
+            case 'GET':
+                $this->_sendGetRequest($url, $data);
+                break;
+            case 'POST':
+                $this->_sendPostRequest($url, $data);
+                break;
+            case 'PUT':
+                $this->_sendPutRequest($url, $data);
+                break;
+            case 'DELETE':
+                $this->_sendDeleteRequest($url);
+                break;
+            default:
+                curl_close($this->_ch);
+                throw new CException("Current methos ($method) is an invalid REST method.");
         }
     }
 
@@ -94,41 +94,63 @@ class RestExtension {
         return $this->_response_body;
     }
 
-
-
-    private function sendGetRequest() {
-        $this->executeRequest();
+    private function _initConfig() {
+        $this->_ch = curl_init();
+        curl_setopt($this->_ch, CURLOPT_TIMEOUT, $this->_config['timeout']);
+        curl_setopt($this->_ch, CURLOPT_RETURNTRANSFER, true);
+        if ($this->_config['user'] != '' || $this->_config['password'] != '') {
+            curl_setopt($this->_ch, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
+            curl_setopt($this->_ch, CURLOPT_USERPWD, $this->_config['user'].':'.$this->_config['password']);
+        }
+        if ($this->_config['ssl'] === true) {
+            curl_setopt($this->_ch, CURLOPT_VERBOSE, 0);
+            curl_setopt($this->_ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+            curl_setopt($this->_ch, CURLOPT_SSL_VERIFYHOST, FALSE);
+        }
+        if ($this->_config['headers'] != null) {
+            curl_setopt($this->_ch, CURLOPT_HTTPHEADER, (array) $this->_config['headers']);
+        }
     }
 
-    private function sendPostRequest($data) {
-        $data = $this->buildPostData($data);
+    private function _sendGetRequest($url, $data) {
+        $data = $this->_buildPostData($data);
+        if (null != $data) {
+            $data = (strpos('?', $url) !== false) ? '?'.$data : '&'.$data;
+            $url .= $data;
+        }
+        curl_setopt($this->_ch, CURLOPT_URL, $url);
+        $this->_executeRequest();
+    }
+
+    private function _sendPostRequest($url, $data) {
+        $data = $this->_buildPostData($data);
         if (null != $data) {
             curl_setopt($this->_ch, CURLOPT_POSTFIELDS, $data);
             curl_setopt($this->_ch, CURLOPT_POST, 1);
         }
-        $this->executeRequest();
+        curl_setopt($this->_ch, CURLOPT_URL, $url);
+        $this->_executeRequest();
     }
 
-    private function sendPutRequest($data) {
+    private function _sendPutRequest($url, $data) {
         curl_setopt($this->_ch, CURLOPT_CUSTOMREQUEST, "PUT");
-        $this->sendPostRequest($data);
+        $this->_sendPostRequest($url, $data);
     }
 
-    private function sendDeleteRequest() {
+    private function _sendDeleteRequest($url) {
+        curl_setopt($this->_ch, CURLOPT_URL, $url);
         curl_setopt($this->_ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
-        $this->executeRequest();
+        $this->_executeRequest();
     }
 
-    private function buildPostData($data) {
+    private function _buildPostData($data) {
         $data = (is_array($data) && $data != null) ? http_build_query($data, '', '&') : null;
         return $data;
     }
 
-    private function executeRequest() {
+    private function _executeRequest() {
         $this->_response_body = curl_exec($this->_ch);
         $this->_response_info = curl_getinfo($this->_ch);
         curl_close($this->_ch);
     }
-
-
 }

@@ -10,9 +10,9 @@
  * @since 0.8
  */
 return array(
-	'email'    => '^[a-zA-Z0-9._-]+@[a-zA-Z0-9_-]+[\.][a-zA-Z0-9._-]+$',
-	'login'    => '^[a-zA-Z0-9._-]+$',
-	'password' => '^[a-zA-Z0-9._-]+$',
-	'numeric'  => '^[\d]+$',
-	'filled'   => '^(.+)$'
+    'email' => '^[a-zA-Z0-9._-]+@[a-zA-Z0-9_-]+[\.][a-zA-Z0-9._-]+$',
+    'login' => '^[a-zA-Z0-9._-]+$',
+    'password' => '^[a-zA-Z0-9._-]+$',
+    'numeric' => '^[\d]+$',
+    'filled' => '^(.+)$'
 );

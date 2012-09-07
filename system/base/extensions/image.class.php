@@ -12,12 +12,11 @@
  * @package system.base.extensions
  * @since 0.8
  */
-require_once(Config::get('path/extensions').'file.class.php');
-class ImageExtension extends FileExtension {
+class ImageExtension {
     /**
      * @var int JPEG quality
      */
-    private $_quality = 90;
+    private $_jpgQuality = 90;
 
     /**
      * Set jpeg quality
@@ -26,495 +25,395 @@ class ImageExtension extends FileExtension {
      * @param  int $quality
      * @return void
      */
-    public function setJpegQuality($quality) {
-        $this->_quality = (int) $quality;
+    public function setJpgQuality($quality) {
+        $this->_jpgQuality = (int) $quality;
     }
 
     /**
      * Resize source image and save result.
-     * Изменение происходит по относительно ширины, высоты, или в зависимости от большей стороны
-     * Например, если исходное изображение 400x200 px,
-     * - передан параметр width = 100, то полученное изображение будет 100x50px
-     * - передан параметр height = 100, то полученное изображение будет 200x100px
-     * - переданы width = 100, height = 100, то полученное изображение 100x50px, т.к. ширина больше высоты
      *
      * @access public
-     * @param string $source      path to source image file
-     * @param string $destination path to result image file
-     * @param int $width          width result image
-     * @param int $height         hight result image
+     * @param string $iImg input image file
+     * @param string $oImg output image file
+     * @param int $width output image width
+     * @param int $height output image hight
+     * @param bool $type
      * @return bool
      */
-    public function resizeImage($source, $destination, $width = 0, $height = 0) {
+    public function resize($iImg, $oImg, $width = 0, $height = 0, $type = true) {
+        $result = true;
+        $iSrc = $oSrc = null;
+        $iSize = getimagesize($iImg);
+
         $width = (int) $width;
         $height = (int) $height;
 
-        $image_params = getimagesize($source);
-
-        if ($width == 0 && $height != 0) {
-            $coeff = $height / $image_params[1];
-            $width = round($image_params[0] * $coeff);
+        if (($width == 0 && $height == 0) || ($width == $iSize[0] && $height == $iSize[1])) {
+            $result = @copy($iImg, $oImg);
         }
-        elseif ($width != 0 && $height == 0) {
-            $coeff = $width / $image_params[0];
-            $height = round($image_params[1] * $coeff);
-        }
-        elseif ($width != 0 && $height != 0) {
-            if ($width == $height) {
-                if ($image_params[0] >= $image_params[1]) {
-                    $coeff = $width / $image_params[0];
-                    $height = round($image_params[1] * $coeff);
-                }
-                else {
-                    $coeff = $height / $image_params[1];
-                    $width = round($image_params[0] * $coeff);
-                }
-            }
-            if ($width > $height) {
-                $coeff = $width / $image_params[0];
-                $height = round($image_params[1] * $coeff);
-            }
-            if ($width < $height) {
-                $coeff = $height / $image_params[1];
-                $width = round($image_params[0] * $coeff);
-            }
-        }
-        elseif ($width == 0 && $height == 0) {
-            $res = @copy($source, $destination);
-            return $res;
-        }
+        else {
+            // Calculate width and height for new image
+            $this->_calcImgs($iSize, $type, $width, $height);
+            // Get image
+            $iSrc = $this->_getImg($iSize[2], $iImg);
 
-        switch ($image_params[2]) {
-            case 1: $source_image = imagecreatefromgif($source);
-                break;
-            case 2: $source_image = imagecreatefromjpeg($source);
-                break;
-            case 3: $source_image = imagecreatefrompng($source);
-                break;
-            default: return false;
+            $oSrc = imagecreatetruecolor($width, $height);
+            $this->_transparentImg($iSrc, $oSrc, $iSize[2]);
+            imagecopyresampled($oSrc, $iSrc, 0, 0, 0, 0, $width, $height, $iSize[0], $iSize[1]);
+
+            // Save image
+            $this->_saveImg($iSize[2], $oSrc, $oImg);
+            imagedestroy($oSrc);
+            imagedestroy($iSrc);
         }
-
-        $output_image = imagecreatetruecolor($width, $height);
-        $this->transparentImage($source_image, $output_image, $image_params[2]);
-
-        imagecopyresampled($output_image, $source_image, 0, 0, 0, 0, $width, $height, $image_params[0], $image_params[1]);
-
-        switch ($image_params[2]) {
-            case 1: imagegif($output_image, $destination);
-                break;
-            case 2: imagejpeg($output_image, $destination, $this->_quality);
-                break;
-            case 3: imagepng($output_image, $destination);
-                break;
-        }
-
-        imagedestroy($output_image);
-        imagedestroy($source_image);
-        return true;
+        return $result;
     }
 
     /**
-     * Create thumbnail from source image
-     *
+     * Crate thumb
+     * Create thumb $width x $height, crop image
+     * 
      * @access public
-     * @param string $source      path to source image file
-     * @param string $destination path to result image file
-     * @param int $width          width result image
-     * @param int $height         hight result image
-     * @param int $type           resize по большей стороне (1), или по меньшей (2)
+     * @param type $iImg input image
+     * @param type $oImg output image
+     * @param type $width thumb width
+     * @param type $height thumb height
      * @return bool
      */
-    public function createThumbnail($source, $destination, $width, $height, $type = 1) {
+    public function thumb($iImg, $oImg, $width, $height) {
+        $result = true;
+        $iSrc = $oSrc = null;
+        $iSize = getimagesize($iImg);
+        $tSize = array($width, $height);
+
         $width = (int) $width;
         $height = (int) $height;
 
-        $image_params = getimagesize($source);
-
-        $thumb_coeff = round($width / $height, 4);
-        $image_coeff = round($image_params[0] / $image_params[1], 4);
-
-        switch ($type) {
-            case 1:
-                if ($thumb_coeff < $image_coeff) {
-                    $coeff = $width / $image_params[0];
-                    $height = round($image_params[1] * $coeff);
-                }
-                if ($thumb_coeff > $image_coeff) {
-                    $coeff = $height / $image_params[1];
-                    $width = round($image_params[0] * $coeff);
-                }
-                if ($image_coeff == 1) {
-                    if ($thumb_coeff >= 1) {
-                        $coeff = $height / $image_params[1];
-                        $width = round($image_params[0] * $coeff);
-                    }
-                    if ($thumb_coeff < 1) {
-                        $coeff = $width / $image_params[0];
-                        $height = round($image_params[1] * $coeff);
-                    }
-                }
-                break;
-            case 2:
-                if ($thumb_coeff < $image_coeff) {
-                    $coeff = $height / $image_params[1];
-                    $width = round($image_params[0] * $coeff);
-                }
-                if ($thumb_coeff > $image_coeff) {
-                    $coeff = $width / $image_params[0];
-                    $height = round($image_params[1] * $coeff);
-                }
-                if ($image_coeff == 1) {
-                    if ($thumb_coeff >= 1) {
-                        $coeff = $width / $image_params[0];
-                        $height = round($image_params[1] * $coeff);
-                    }
-                    if ($thumb_coeff < 1) {
-                        $coeff = $height / $image_params[1];
-                        $width = round($image_params[0] * $coeff);
-                    }
-                }
-                break;
+        if (($width == 0 && $height == 0) || ($width == $iSize[0] && $height == $iSize[1])) {
+            $result = @copy($iImg, $oImg);
         }
+        else {
+            // Calculate width and height for new image
+            $this->_calcImgs($iSize, false, $width, $height);
+            // Get image
+            $iSrc = $this->_getImg($iSize[2], $iImg);
 
-        switch ($image_params[2]) {
-            case 1: $source_image = imagecreatefromgif($source);
-                break;
-            case 2: $source_image = imagecreatefromjpeg($source);
-                break;
-            case 3: $source_image = imagecreatefrompng($source);
-                break;
-            default: return false;
+            $oSrc = imagecreatetruecolor($tSize[0], $tSize[1]);
+            $this->_transparentImg($iSrc, $oSrc, $iSize[2]);
+            $x = $y = 0;
+            if ($width == $tSize[0]) {
+                $y = round(($height - $tSize[1]) / 2);
+            }
+            if ($height == $tSize[1]) {
+                $x = round(($width - $tSize[0]) / 2);
+            }
+            imagecopyresampled($oSrc, $iSrc, -$x, -$y, 0, 0, $width, $height, $iSize[0], $iSize[1]);
+
+            // Save image
+            $this->_saveImg($iSize[2], $oSrc, $oImg);
+            imagedestroy($oSrc);
+            imagedestroy($iSrc);
         }
-
-        $output_image = imagecreatetruecolor($width, $height);
-        $this->transparentImage($source_image, $output_image, $image_params[2]);
-
-        imagecopyresampled($output_image, $source_image, 0, 0, 0, 0, $width, $height, $image_params[0], $image_params[1]);
-
-        switch ($image_params[2]) {
-            case 1: imagegif($output_image, $destination);
-                break;
-            case 2: imagejpeg($output_image, $destination, $this->_quality);
-                break;
-            case 3: imagepng($output_image, $destination);
-                break;
-        }
-
-        imagedestroy($output_image);
-        imagedestroy($source_image);
+        return $result;
     }
 
     /**
      * Crop source image and save result.
      *
      * @access public
-     * @param string $source      path to source image file
-     * @param string $destination path to result image file
-     * @param int $width           width result image
-     * @param int $height         hight result image
-     * @param int $start_x        left top x coord
-     * @param int $start_y        left top y coord
+     * @param string $iImg input image
+     * @param string $oImg output image
+     * @param int $width output image width
+     * @param int $height output image hight
+     * @param int $x left top x coord
+     * @param int $y left top y coord
      * @return bool
      */
-    public function cropImage($source, $destination, $start_x = 0, $start_y = 0, $width = 0, $height = 0) {
+    public function crop($iImg, $oImg, $x = 0, $y = 0, $width = 0, $height = 0) {
+        $result = true;
+        $iSrc = $oSrc = null;
+        $iSize = getimagesize($iImg);
+
+        $x = (int) $x;
+        $y = (int) $y;
         $width = (int) $width;
         $height = (int) $height;
-        $start_x = (int) $start_x;
-        $start_y = (int) $start_y;
 
-        $image_params = getimagesize($source);
-
-        if ($start_x > $image_params[0] || $start_x < 0)
-            $start_x = 0;
-        if ($start_y > $image_params[1] || $start_y < 0)
-            $start_y = 0;
-
-        if (($width + $start_x) > $image_params[0])
-            $width = $image_params[0] - $start_x;
-        if (($height + $start_y) > $image_params[1])
-            $height = $image_params[1] - $start_y;
-
-        if ($width == 0 && $height == 0)
-            return false;
-
-        if ($width == $image_params[0] && $height == $image_params[0]) {
-            $res = @copy($source, $destination);
-            return $res;
+        if ($width == 0 && $height == 0) {
+            $result = false;
         }
+        else {
+            $x = ($x > $iSize[0] || $x < 0) ? 0 : $x;
+            $y = ($y > $iSize[1] || $y < 0) ? 0 : $y;
+            if (($width + $x) > $iSize[0]) {
+                $width = $iSize[0] - $x;
+            }
+            if (($height + $y) > $iSize[1]) {
+                $height = $iSize[1] - $y;
+            }
 
-        switch ($image_params[2]) {
-            case 1: $source_image = imagecreatefromgif($source);
-                break;
-            case 2: $source_image = imagecreatefromjpeg($source);
-                break;
-            case 3: $source_image = imagecreatefrompng($source);
-                break;
+            if ($width == $iSize[0] && $height == $iSize[0]) {
+                $result = @copy($iImg, $oImg);
+            }
+            else {
+                // Get image
+                $iSrc = $this->_getImg($iSize[2], $iImg);
+
+                $oSrc = imagecreatetruecolor($width, $height);
+                $this->_transparentImg($iSrc, $oSrc, $iSize[2]);
+                imagecopyresampled($oSrc, $iSrc, 0, 0, $x, $y, $width, $height, $width, $height);
+
+                // Save image
+                $this->_saveImg($iSize[2], $oSrc, $oImg);
+                imagedestroy($oSrc);
+                imagedestroy($iSrc);
+            }
         }
-
-        $output_image = imagecreatetruecolor($width, $height);
-        $this->transparentImage($source_image, $output_image, $image_params[2]);
-        imagecopyresampled($output_image, $source_image, 0, 0, $start_x, $start_y, $width, $height, $width, $height);
-
-        switch ($image_params[2]) {
-            case 1: imagegif($output_image, $destination);
-                break;
-            case 2: imagejpeg($output_image, $destination, $this->_quality);
-                break;
-            case 3: imagepng($output_image, $destination);
-                break;
-        }
-        imagedestroy($output_image);
-        imagedestroy($source_image);
-        return true;
+        return $result;
     }
 
     /**
      * Set watermark text on image.
      *
      * @access public
-     * @param string $source      path to source image file
-     * @param string $destination path to result image file
-     * @param string $text        text string
-     * @param array  $options     [optional] array with options
-      $options['font_size']  = 1 (must be between 1 and 5, default 2)
-      $options['font_color'] = '#EAEAEA', default #FFFFFF
-      $options['align']  = 'center' (must be 'left', 'center', 'right', default 'right')
-      $options['valign'] = 'center' (must be 'top',  'middle', 'bottom', default 'bottom')
-      $options['margin'] = 5 (number in px, default = 3)
+     * @param string $iImg input image
+     * @param string $oImg output imagee
+     * @param string $text text string
+     * @param array  $options array with options
+     * $options['font'] - path to ttf font, or null
+     * $options['font-size'] - for $options['font'] = null, must be between 1 and 5
+     * $options['font-color'] = '#EAEAEA', default #FFFFFF
+     * $options['align']  = 'center' (must be 'left', 'center', 'right', default 'right')
+     * $options['valign'] = 'center' (must be 'top',  'middle', 'bottom', default 'bottom')
+     * $options['margin'] = 5 (number in px, default = 5)
      * @return bool
      */
-    public function setTextWatermark($source, $destination, $text, $options = null) {
-        $font = isset($options['font_size']) ? (int) $options['font_size'] : 2;
-        $color = isset($options['font_color']) ? strtolower(trim($options['font_color'])) : '#FFFFFF';
-        $align = isset($options['align']) ? strtolower(trim($options['align'])) : 'right';
-        $valign = isset($options['valign']) ? strtolower(trim($options['valign'])) : 'bottom';
-        $margin = isset($options['margin']) ? (int) $options['margin'] : 3;
+    public function textWatermark($iImg, $oImg, $text, $options = array()) {
+        // Image vars
+        $result = true;
+        $iSrc = $oSrc = null;
+        $iSize = getimagesize($iImg);
 
-        $image_params = getimagesize($source);
-        $width = $image_params[0];
-        $height = $image_params[1];
+        // Font
+        $options['font'] = isset($options['font']) ? $options['font'] : null;
+        $options['font-size'] = isset($options['font-size']) ? (int) $options['font-size'] : 10;
+        $options['font-color'] = isset($options['font-color']) ? $options['font-color'] : '#FFFFFF';
+        // Positions
+        $options['align'] = isset($options['align']) ? strtolower(trim($options['align'])) : 'right';
+        $options['valign'] = isset($options['valign']) ? strtolower(trim($options['valign'])) : 'bottom';
+        $options['margin'] = isset($options['margin']) ? (int) $options['margin'] : 5;
 
-        $output_image = imagecreatetruecolor($width, $height);
-        switch ($image_params[2]) {
-            case 1: $source_image = imagecreatefromgif($source);
-                break;
-            case 2: $source_image = imagecreatefromjpeg($source);
-                break;
-            case 3: $source_image = imagecreatefrompng($source);
-                break;
+        $iSrc = $this->_getImg($iSize[2], $iImg);
+        $oSrc = imagecreatetruecolor($iSize[0], $iSize[1]);
+
+        imagecopyresampled($oSrc, $iSrc, 0, 0, 0, 0, $iSize[0], $iSize[1], $iSize[0], $iSize[1]);
+        $color = $this->_hexToRgb($color);
+        $color = imageColorAllocate($oSrc, $color[0], $color[1], $color[2]);
+
+        $x = $y = 0;
+        // Generate color
+        $color = $this->_hexToRgb($options['font-color']);
+        $color = imageColorAllocate($oSrc, $color[0], $color[1], $color[2]);
+        // Calc text
+        $this->_calcTxtWatermark($text, $options, $iSize[0], $iSize[1], $x, $y);
+
+        // Generate text 
+        if ($options['font'] != null) {
+            $result = imagettftext($oSrc, $options['font-size'], 0, $x, $y, $color, $options['font'], $text);
+        }
+        else {
+            $result = imagestring($oSrc, $options['font-size'], $x, $y, $text, $color);
         }
 
-        $this->transparentImage($source_image, $output_image, $image_params[2]);
-
-        imagecopyresampled($output_image, $source_image, 0, 0, 0, 0, $width, $height, $width, $height);
-        $color = $this->hexToRgb($color);
-        $color = imageColorAllocate($output_image, $color[0], $color[1], $color[2]);
-        $text_x = $this->calcTextX($text, $align, $font, $margin, $width);
-        $text_y = $this->calcTextY($text, $valign, $font, $margin, $height);
-        $res = imagestring($output_image, $font, $text_x, $text_y, $text, $color);
-
-        switch ($image_params[2]) {
-            case 1: imagegif($output_image, $destination);
-                break;
-            case 2: imagejpeg($output_image, $destination, $this->_quality);
-                break;
-            case 3: imagepng($output_image, $destination);
-                break;
-        }
-
-        imagedestroy($output_image);
-        imagedestroy($source_image);
-        return true;
+        // Save image
+        $this->_saveImg($iSize[2], $oSrc, $oImg);
+        imagedestroy($oSrc);
+        imagedestroy($iSrc);
+        return $result;
     }
 
     /**
      * Set image watermark on image.
      *
      * @access public
-     * @param string $source      path to source image file
-     * @param string $destination path to result image file
-     * @param string $watermark   path to watermark file
+     * @param string $iImg      path to source image file
+     * @param string $oImg path to result image file
+     * @param string $wImg   path to watermark file
      * @param array $options      array with options
-      $options['align']  = 'center' (must be 'left', 'center', 'right', default 'right')
-      $options['valign'] = 'center' (must be 'top',  'center', 'bottom', default 'bottom')
-      $options['margin'] = 5 (number in px, default = 3)
-      $options['transp'] = 100 (% transparence default = 70%), only for 'common' mode
-     * @param string $mode merge mode 'common' or 'transparence'. If source image and watermark is transparence,
-     *                     use mode 'transparence'
+     *
+     * $options['align']  = 'center' (must be 'left', 'center', 'right', default 'right')
+     * $options['valign'] = 'center' (must be 'top',  'center', 'bottom', default 'bottom')
+     * $options['margin'] = 5 (number in px, default = 3)
+     * $options['opacity'] = 100 (% transparence default = 70%), only for 'opacity-mode' = true
+     * $options['opacity-mode'] = false If source image and watermark is transparence, use $options['opacity-mode'] = true
+     *
      * @return bool
      */
-    public function setImageWatermark($source, $destination, $watermark, $options = null, $mode = 'common') {
-        $align = isset($options['align']) ? strtolower(trim($options['align'])) : 'right';
-        $valign = isset($options['valign']) ? strtolower(trim($options['valign'])) : 'bottom';
-        $margin = isset($options['margin']) ? (int) $options['margin'] : 3;
-        $transp = isset($options['transp']) ? (int) $options['transp'] : 70;
+    public function imageWatermark($iImg, $oImg, $wImg, $options = array()) {
+        // Positions
+        $options['align'] = isset($options['align']) ? strtolower(trim($options['align'])) : 'right';
+        $options['valign'] = isset($options['valign']) ? strtolower(trim($options['valign'])) : 'bottom';
+        $options['margin'] = isset($options['margin']) ? (int) $options['margin'] : 5;
+        $options['opacity'] = isset($options['opacity']) ? $options['opacity'] : 70;
+        $options['opacity-mode'] = isset($options['opacity-mode']) ? (bool) $options['opacity-mode'] : false;
+        // Image vars
+        $iSrc = $oSrc = $wSrc = $woSrc = null;
+        $result = true;
 
-        $image_params = getimagesize($source);
-        $water_params = getimagesize($watermark);
+        $iSize = getimagesize($iImg);
+        $wSize = getimagesize($wImg);
 
-        $width_s = $image_params[0];
-        $height_s = $image_params[1];
-        $width_w = $water_params[0];
-        $height_w = $water_params[1];
+        $iSrc = $this->_getImg($iSize[2], $iImg);
+        $wSrc = $this->_getImg($wSize[2], $wImg);
 
-        switch ($image_params[2]) {
-            case 1: $source_image = imagecreatefromgif($source);
-                break;
-            case 2: $source_image = imagecreatefromjpeg($source);
-                break;
-            case 3: $source_image = imagecreatefrompng($source);
-                break;
+        $x = $y = 0;
+        $this->_calcImgWatermark($options, $iSize, $wSize, $x, $y);
+
+        if ($options['opacity-mode'] === false) {
+            imageCopyMerge($iSrc, $wSrc, $x, $y, 0, 0, $wSize[0], $wSize[1], $options['opacity']);
+            // Save image
+            $this->_saveImg($iSize[2], $iSrc, $oImg);
+            imagedestroy($wSrc);
         }
-        switch ($water_params[2]) {
-            case 1: $water_img = imagecreatefromgif($watermark);
-                break;
-            case 2: $water_img = imagecreatefromjpeg($watermark);
-                break;
-            case 3: $water_img = imagecreatefrompng($watermark);
-                break;
+        else {
+            $oSrc = imagecreatetruecolor($iSize[0], $iSize[1]);
+            $this->_transparentImg($iSrc, $oSrc, $iSize[2]);
+            imagecopyresampled($oSrc, $iSrc, 0, 0, 0, 0, $iSize[0], $iSize[1], $iSize[0], $iSize[1]);
+            imagedestroy($iSrc);
+
+            $woSrc = imagecreatetruecolor($wSize[0], $wSize[1]);
+            $this->_transparentImg($wSrc, $woSrc, $wSize[2]);
+            imagecopyresampled($woSrc, $wSrc, 0, 0, 0, 0, $wSize[0], $wSize[1], $wSize[0], $wSize[1]);
+            imagedestroy($wSrc);
+
+            imagealphablending($oSrc, 1);
+            imagealphablending($woSrc, 1);
+            imagecopy($oSrc, $woSrc, $x, $y, 0, 0, $wSize[0], $wSize[1]);
+
+
+            // Save image
+            $this->_saveImg($iSize[2], $oSrc, $oImg);
+            imagedestroy($oSrc);
+            imagedestroy($woSrc);
         }
 
-        $x = $this->calcImageX($align, $margin, $width_w, $width_s);
-        $y = $this->calcImageY($valign, $margin, $height_w, $height_s);
-
-        switch ($mode) {
-            case 'common':
-                imageCopyMerge($source_image, $water_img, $x, $y, 0, 0, $width_w, $height_w, $transp);
-                switch ($image_params[2]) {
-                    case 1: imagegif($source_image, $destination);
-                        break;
-                    case 2: imagejpeg($source_image, $destination, $this->_quality);
-                        break;
-                    case 3: imagepng($source_img, $destination);
-                        break;
-                }
-                imagedestroy($water_img);
-                imagedestroy($source_image);
-                break;
-            case 'transparence':
-                $output_image = imagecreatetruecolor($width_s, $height_s);
-                $this->transparentImage($source_image, $output_image, $image_params[2]);
-                imagecopyresampled($output_image, $source_image, 0, 0, 0, 0, $width_s, $height_s, $width_s, $height_s);
-                imagedestroy($source_image);
-
-                $output_water = imagecreatetruecolor($width_w, $width_w);
-                $this->transparentImage($water_img, $output_water, $image_params[2]);
-                imagecopyresampled($output_water, $water_img, 0, 0, 0, 0, $width_w, $height_w, $width_w, $height_w);
-                imagedestroy($water_img);
-
-                imagealphablending($output_image, 1);
-                imagealphablending($output_water, 1);
-                imagecopy($output_image, $output_water, $x, $y, 0, 0, $width_w, $height_w);
-
-                switch ($image_params[2]) {
-                    case 1: imagegif($output_image, $destination);
-                        break;
-                    case 2: imagejpeg($output_image, $destination, $this->_quality);
-                        break;
-                    case 3: imagepng($output_image, $destination);
-                        break;
-                }
-                imagedestroy($output_image);
-                imagedestroy($output_water);
-                break;
-        }
-        return true;
+        return $result;
     }
 
-    /**
-     * Calculate X coord left top point.
-     *
-     * @access private
-     * @param string $text  text string
-     * @param string $align center, right or left
-     * @param int $font     font size
-     * @param int $margin   margin in pixels
-     * @param int $width    picture width
-     * @return int
-     */
-    private function calcTextX($text, $align, $font, $margin, $width) {
-        $x = imagefontwidth($font) * strlen($text);
-        switch ($align) {
-            case 'center': $x = $width / 2 - $x / 2;
+    private function _getImg($type, $iImg) {
+        $iSrc = null;
+        switch ($type) {
+            case 1: $iSrc = imagecreatefromgif($iImg);
                 break;
-            case 'right': $x = $width - $x - $margin;
+            case 2: $iSrc = imagecreatefromjpeg($iImg);
                 break;
-            case 'left':
-            default: $x = 0 + $margin;
+            case 3: $iSrc = imagecreatefrompng($iImg);
                 break;
         }
-        return $x;
+        return $iSrc;
     }
 
-    /**
-     * Calculate Y coord left top point.
-     *
-     * @access private
-     * @param string $text   text string
-     * @param string $valign center, bottom or top
-     * @param int $font      font size
-     * @param int $margin    margin in pixels
-     * @param int $height    picture height
-     * @return int
-     */
-    private function calcTextY($text, $valign, $font, $margin, $height) {
-        $y = imagefontheight($font);
-        switch ($valign) {
-            case 'center': $y = $height / 2 - $y / 2;
+    private function _saveImg($type, &$oSrc, &$oImg) {
+        switch ($type) {
+            case 1: imagegif($oSrc, $oImg);
                 break;
-            case 'bottom': $y = $height - $y - $margin;
+            case 2: imagejpeg($oSrc, $oImg, $this->_jpgQuality);
                 break;
-            case 'top':
-            default: $y = 0 + $margin;
+            case 3: imagepng($oSrc, $oImg);
                 break;
         }
-        return $y;
     }
 
-    /**
-     * Calculate X coord left top point.
-     *
-     * @access private
-     * @param string $align center, right or left
-     * @param int $margin   margin in pixels
-     * @param int $width_w  watermark width
-     * @param int $width_s  picture width
-     * @return int
-     */
-    private function calcImageX($align, $margin, $width_w, $width_s) {
-        switch ($align) {
-            case 'center': $x = $width_s / 2 - $width_w / 2;
-                break;
-            case 'right': $x = $width_s - $width_w - $margin;
-                break;
-            case 'left':
-            default: $x = 0 + $margin;
-                break;
+    private function _calcImgs($iSize, $type, &$width, &$height) {
+        $coeff = 0;
+        $ocoeff = round($width / $height, 4);
+        $icoeff = round($iSize[0] / $iSize[1], 4);
+        if ($type === true) {
+            if ($ocoeff < $icoeff || ($icoeff == 1 && $ocoeff < 1)) {
+                $this->_calcImgSize($width, $iSize[0], $iSize[1], $coeff, $height);
+            }
+            else {
+                $this->_calcImgSize($height, $iSize[1], $iSize[0], $coeff, $width);
+            }
         }
-        return $x;
+        else {
+            if ($ocoeff < $icoeff || ($icoeff == 1 && $ocoeff < 1)) {
+                $this->_calcImgSize($height, $iSize[1], $iSize[0], $coeff, $width);
+            }
+            else {
+                $this->_calcImgSize($width, $iSize[0], $iSize[1], $coeff, $height);
+            }
+        }
     }
 
-    /**
-     * Calculate Y coord left top point.
-     *
-     * @access private
-     * @param string $valign center, bottom or top
-     * @param int $margin    margin in pixels
-     * @param int $height_w  watermark height
-     * @param int $height_s  picture height
-     * @return int
-     */
-    private function calcImageY($valign, $margin, $height_w, $height_s) {
-        switch ($valign) {
-            case 'center': $y = $height_s / 2 - $height_w / 2;
+    private function _calcImgSize($i1, $i2, $i3, &$o1, &$o2) {
+        $o1 = $i1 / $i2;
+        $o2 = round($i3 * $o1);
+    }
+
+    private function _calcTxtWatermark($text, $options, $width, $height, &$x, &$y) {
+        if ($options['font'] == null) {
+            $x = imagefontwidth($options['font-size']) * strlen($text);
+            $y = imagefontheight($options['font-size']);
+        }
+        else {
+            $tmp = imagettfbbox($options['font-size'], 0, $options['font'], $text);
+            $x = $tmp[2];
+            $y = $tmp[3];
+        }
+        // Calc X
+        switch ($options['align']) {
+            case 'center':
+                $x = $width / 2 - $x / 2;
                 break;
-            case 'bottom': $y = $height_s - $height_w - $margin;
+            case 'right':
+                $x = $width - $x - $options['margin'];
                 break;
-            case 'top':
-            default: $y = 0 + $margin;
+            default:
+                $x = 0 + $options['margin'];
                 break;
         }
-        return $y;
+        // Calc Y
+        switch ($options['valign']) {
+            case 'center':
+                $y = $height / 2 - $y / 2;
+                break;
+            case 'bottom':
+                $y = $height - $y - $options['margin'];
+                break;
+            default:
+                $y = 0 + $options['margin'];
+                break;
+        }
+        $x = (int) $x;
+        $y = (int) $y;
+    }
+
+    private function _calcImgWatermark($options, $iSize, $wSize, &$x, &$y) {
+        switch ($options['align']) {
+            case 'center':
+                $x = $iSize[0] / 2 - $wSize[0] / 2;
+                break;
+            case 'right':
+                $x = $iSize[0] - $wSize[0] - $options['margin'];
+                break;
+            default:
+                $x = 0 + $options['margin'];
+                break;
+        }
+        switch ($options['valign']) {
+            case 'center':
+                $y = $iSize[1] / 2 - $wSize[1] / 2;
+                break;
+            case 'right':
+                $y = $iSize[1] - $wSize[1] - $options['margin'];
+                break;
+            default:
+                $y = 0 + $options['margin'];
+                break;
+        }
+        $x = (int) $x;
+        $y = (int) $y;
     }
 
     /**
@@ -524,62 +423,63 @@ class ImageExtension extends FileExtension {
      * @param string $color hex color (for example '#cccccc', '#fff')
      * @return array
      */
-    private function hexToRgb($color) {
+    private function _hexToRgb($color) {
         $color = str_replace('#', '', $color);
         $size = strlen($color);
+        $result = array(255, 255, 255);
         if ($size == 6) {
             $r = substr($color, 0, 2);
             $g = substr($color, 2, 2);
             $b = substr($color, 4, 2);
-            return array(hexdec($r), hexdec($g), hexdec($b));
+            $result = array(hexdec($r), hexdec($g), hexdec($b));
         }
         if ($size == 3) {
             $r = substr($color, 0, 1);
             $g = substr($color, 1, 1);
             $b = substr($color, 2, 1);
-            return array(hexdec($r.$r), hexdec($g.$g), hexdec($b.$b));
+            $result = array(hexdec($r.$r), hexdec($g.$g), hexdec($b.$b));
         }
-        return array(255, 255, 255);
+        return $result;
     }
 
     /**
      * If input image support transparent, create output image transparently
      *
      * @access private
-     * @param link $source_image link on input image
-     * @param link $output_image link on output image
-     * @param int $image_type
+     * @param link $iSrc link on input image
+     * @param link $oSrc link on output image
+     * @param int $type
      * @return void
      */
-    private function transparentImage(&$source_image, &$output_image, $image_type) {
+    private function _transparentImg(&$iSrc, &$oSrc, $type) {
         /**
          * Transparent
          * Source code for transparent - http://alexle.net/archives/131/
          */
-        if ($image_type == 1 || $image_type == 3) {
-            $trnprt_indx = imagecolortransparent($source_image);
-            $pallet_size = imagecolorstotal($source_image);
+        if ($type == 1 || $type == 3) {
+            $tIndex = imagecolortransparent($iSrc);
+            $pSize = imagecolorstotal($iSrc);
             // If we have a specific transparent color
-            if ($trnprt_indx >= 0 && $trnprt_indx < $pallet_size) {
+            if ($tIndex >= 0 && $tIndex < $pSize) {
                 // Get the original image's transparent color's RGB values
-                $trnprt_color = imagecolorsforindex($source_image, $trnprt_indx);
+                $tColor = imagecolorsforindex($iSrc, $tIndex);
                 // Allocate the same color in the new image resource
-                $trnprt_indx = imagecolorallocate($output_image, $trnprt_color['red'], $trnprt_color['green'], $trnprt_color['blue']);
+                $tIndex = imagecolorallocate($oSrc, $tColor['red'], $tColor['green'], $tColor['blue']);
                 // Completely fill the background of the new image with allocated color.
-                imagefill($output_image, 0, 0, $trnprt_indx);
+                imagefill($oSrc, 0, 0, $tIndex);
                 // Set the background color for new image to transparent
-                imagecolortransparent($output_image, $trnprt_indx);
+                imagecolortransparent($oSrc, $tIndex);
             }
             // Always make a transparent background color for PNGs that don't have one allocated already
-            elseif ($image_type == 3) {
+            elseif ($type == 3) {
                 // Turn off transparency blending (temporarily)
-                imagealphablending($output_image, false);
+                imagealphablending($oSrc, false);
                 // Create a new transparent color for image
-                $color = imagecolorallocatealpha($output_image, 0, 0, 0, 127);
+                $color = imagecolorallocatealpha($oSrc, 0, 0, 0, 127);
                 // Completely fill the background of the new image with allocated color.
-                imagefill($output_image, 0, 0, $color);
+                imagefill($oSrc, 0, 0, $color);
                 // Restore transparency blending
-                imagesavealpha($output_image, true);
+                imagesavealpha($oSrc, true);
             }
         }
     }

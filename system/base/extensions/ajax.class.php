@@ -29,9 +29,8 @@ class AjaxExtension {
      * @param mixed $data hash for convert to JSON format and print it
      * @return void
      */
-    public function sendData($data) {
+    public function send($data) {
         $date = json_encode($data);
-        echo $date;
-        exit();
+        die($date);
     }
 }

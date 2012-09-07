@@ -2,11 +2,11 @@
 /**
  * Config class file.
  *
- * Config это singleton class для работы с конфигурацией приложения.
+ * Config singleton class for work with app config
  *
  * @author Dmitry Avseyenko <polsad@gmail.com>
  * @link http://weegbo.com/
- * @copyright Copyright &copy; 2008-2011 Inspirativ
+ * @copyright Copyright &copy; 2008-2012 Inspirativ
  * @license http://weegbo.com/license/
  * @package system.base
  * @since 0.8
@@ -22,6 +22,7 @@ class Config {
      * @var static property for save configuration data
      */
     private static $_config = array();
+    private static $_separator = '/';
 
     /**
      * Load application config from file.
@@ -34,21 +35,21 @@ class Config {
         switch ($type) {
             case 'array':
                 $aliases = array();
-                self::setAliases((array) $config, $aliases);
+                self::_setAliases((array) $config, $aliases);
                 self::$_config = array_merge_recursive(self::$_config, $aliases);
                 break;
             default:
                 if (file_exists($config)) {
                     $config = require($config);
                     $aliases = array();
-                    self::setAliases($config, $aliases);
+                    self::_setAliases($config, $aliases);
                     self::$_config = array_merge_recursive(self::$_config, $aliases);
                 }
         }
     }
 
     /**
-     * Возвращает значение по ключу.
+     * Returned value by config key
      *
      * @access public
      * @param string $key
@@ -61,7 +62,7 @@ class Config {
         }
         else {
             $result = null;
-            $key = rtrim($key, '/').'/';
+            $key = rtrim($key, self::$_separator).self::$_separator;
             foreach (self::$_config as $k => $v) {
                 if (0 === strpos($k, $key)) {
                     $result[$k] = $v;
@@ -72,7 +73,7 @@ class Config {
     }
 
     /**
-     * Устанавливает новое значение. Если ключ не существует - создает его.
+     * Setup new value for key. If the key does not exist - create it.
      *
      * @access public
      * @param string $key
@@ -82,12 +83,16 @@ class Config {
     public static function set($key, $value) {
         if (is_array($value)) {
             $aliases = array();
-            self::setAliases($value, $aliases, $key);
+            self::_setAliases($value, $aliases, $key);
             self::$_config = array_merge_recursive(self::$_config, $aliases);
         }
         else {
             self::$_config[$key] = $value;
         }
+    }
+    
+    public function setSeparator($separator) {
+        self::$_separator = $separator;
     }
 
     /**
@@ -103,7 +108,7 @@ class Config {
         $lenght = ($prefix === null) ? 0 : strlen($prefix);
         foreach ((array) $aliases as $k => $v) {
             $keys = ($prefix === null) ? $k : substr($k, $lenght);
-            $keys = explode('/', $keys);
+            $keys = explode(self::$_separator, $keys);
             $vals = &$result;
             foreach ($keys as $key) {
                 if (!isset($vals[$key])) {
@@ -137,9 +142,9 @@ class Config {
     }
 
     /**
-     * Метод преобразует многомерный массив в одномерный массив соответсвий.
+     * Method converts a multidimensional array to a one-dimensional array.
      * Example: array('path' => array('config' => ..., 'tmpls' => ...))
-     * преобразуется в array('path/config' => ... 'path/tmpls' => ...).
+     * to array('path/config' => ... 'path/tmpls' => ...).
      *
      * @access private
      * @param array $config configuration array
@@ -147,10 +152,10 @@ class Config {
      * @param string $path
      * @return void
      */
-    private static function setAliases($config, &$aliases, $path = null) {
+    private static function _setAliases($config, &$aliases, $path = null) {
         foreach ($config as $k => $v) {
             if (is_array($v)) {
-                self::setAliases($v, $aliases, $path.$k.'/');
+                self::_setAliases($v, $aliases, $path.$k.self::$_separator);
             }
             else {
                 $aliases[$path.$k] = $v;

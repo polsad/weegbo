@@ -73,7 +73,7 @@ class Registry {
      * @param sting $name object's name
      * @return bool
      */
-    public static function del($name) {
+    public static function delete($name) {
         $result = false;
         if (self::isValid($name)) {
             unset(self::$_store[$name]);

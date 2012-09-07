@@ -18,15 +18,15 @@ class PagingExtension {
      * Return paging array.
      *
      * @access public
-     * @param int $count_records total records number
-     * @param int $count_on_page records number on page
-     * @param int $count_pages   pages number in paging
+     * @param int $countRecords total records number
+     * @param int $countOnPage records number on page
+     * @param int $countPages   pages number in paging
      * @param int $page          current page
      * @return array|null
      */
-    public function getPages($count_records, $count_on_page, $count_pages, $page) {
-        if ($count_on_page > 0)
-            $count = ceil($count_records / $count_on_page);
+    public function getPages($countRecords, $countOnPage, $countPages, $page) {
+        if ($countOnPage > 0)
+            $count = ceil($countRecords / $countOnPage);
         // if we have 1 page - don't show paging
         if ($count <= 1)
             return null;
@@ -34,15 +34,15 @@ class PagingExtension {
             $page = 1;
         if ($page > $count)
             $page = $count;
-        if ($count_pages > $count)
-            $count_pages = $count;
+        if ($countPages > $count)
+            $countPages = $count;
 
-        if ($count_pages % 2 == 1) {
-            $left_pages = ($count_pages - 1) / 2;
+        if ($countPages % 2 == 1) {
+            $left_pages = ($countPages - 1) / 2;
             $right_pages = $left_pages;
         }
         else {
-            $left_pages = $count_pages / 2;
+            $left_pages = $countPages / 2;
             $right_pages = $left_pages - 1;
         }
 
@@ -51,11 +51,11 @@ class PagingExtension {
 
         if ($start <= 1) {
             $start = 1;
-            $finish = $count_pages;
+            $finish = $countPages;
         }
         if ($finish >= $count) {
             $finish = $count;
-            $start = $count - ($count_pages - 1);
+            $start = $count - ($countPages - 1);
         }
 
         $pages = array();

@@ -21,7 +21,7 @@ class DomExtension {
     /**
      * @var object dom document
      */
-    private $dom = null;
+    private $_dom = null;
 
     /**
      * Constructor
@@ -32,7 +32,7 @@ class DomExtension {
      * @return void
      */
     public function __construct($version = '1.0', $encoding = 'UTF-8') {
-        $this->dom = new DOMDocument($version, $encoding);
+        $this->_dom = new DOMDocument($version, $encoding);
     }
 
     /**
@@ -45,21 +45,20 @@ class DomExtension {
      * @param array $attr array with node attributes
      * @return DOM node
      */
-    public function setElement($node, $root = null, $value = null, $attr = null) {
-        if (null == $value)
-            $nnode = $this->dom->createElement($node);
-        else
-            $nnode = $this->dom->createElement($node, (string) $value);
-        if (null != $attr) {
+    public function add($node, $root = null, $value = null, $attr = null) {
+        $item = (null === $value) ? $this->_dom->createElement($node) : $this->_dom->createElement($node, (string) $value);
+        if (null !== $attr) {
             foreach ((array) $attr as $k => $v) {
-                $nnode->setAttribute($k, $v);
+                $item->setAttribute($k, $v);
             }
         }
-        if ($root != null)
-            $root->appendChild($nnode);
-        else
-            $this->dom->appendChild($nnode);
-        return $nnode;
+        if (null !== $root) {
+            $root->appendChild($item);
+        }
+        else {
+            $this->_dom->appendChild($item);
+        }
+        return $item;
     }
 
     /**
@@ -72,17 +71,17 @@ class DomExtension {
      * @param array $attr array with node attributes
      * @return DOM node
      */
-    public function setElementCdata($node, $root, $value, $attr = null) {
-        $cdata = $this->dom->createCDATASection($value);
-        $nnode = $this->dom->createElement($node);
+    public function addCdata($node, $root, $value, $attr = null) {
+        $cdata = $this->_dom->createCDATASection($value);
+        $item = $this->_dom->createElement($node);
         if (null != $attr) {
             foreach ((array) $attr as $k => $v) {
-                $nnode->setAttribute($k, $v);
+                $item->setAttribute($k, $v);
             }
         }
-        $nnode->appendChild($cdata);
-        $root->appendChild($nnode);
-        return $nnode;
+        $item->appendChild($cdata);
+        $root->appendChild($item);
+        return $item;
     }
 
     /**
@@ -94,9 +93,9 @@ class DomExtension {
      */
     public function getXML($format = false) {
         if ($format == true) {
-            $this->dom->preserveWhiteSpace = false;
-            $this->dom->formatOutput = true;
+            $this->_dom->preserveWhiteSpace = false;
+            $this->_dom->formatOutput = true;
         }
-        return $this->dom->saveXML();
+        return $this->_dom->saveXML();
     }
 }

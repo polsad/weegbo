@@ -18,33 +18,43 @@
  * @since 0.8
  */
 class CryptExtension {
-    private $_td = null;
-    private $_iv = null;
-    private $_key = null;
-    private $_method = null;
+    private $_config = array(
+        'td' => null,
+        'iv' => null,
+        'key' => null,
+        'method' => MCRYPT_DES
+    );
 
-
-    public function  __construct($key, $method = MCRYPT_DES) {
-        $this->init($key, $method);
+    /**
+     * You can see methods on http://www.php.net/manual/ru/mcrypt.ciphers.php
+     */
+    public function __construct($config = null) {
+        if (!extension_loaded('mcrypt')) {
+            throw new CException('Crypt requires PHP mcrypt extension to be loaded', 500);
+        }        
+        $this->setConfig($config);
     }
 
-    public function init($key, $method = MCRYPT_DES) {
-        $this->_key = $key;
-        $this->_method = $method;
+    public function setConfig($config) {
+        if (is_array($config) == true) {
+            foreach ($this->_config as $k => $v) {
+                $this->_config[$k] = (array_key_exists($k, $config) === false) ? $this->_config[$k] : $config[$k];
+            }
+        }
     }
 
     public function encrypt($source) {
-        $this->_td = mcrypt_module_open($this->_method, '', 'ofb', '');
-        $this->_iv = mcrypt_create_iv(mcrypt_enc_get_iv_size($this->_td), MCRYPT_RAND);
-        
+        $this->_config['td'] = mcrypt_module_open($this->_config['method'], '', 'ofb', '');
+        $this->_config['iv'] = mcrypt_create_iv(mcrypt_enc_get_iv_size($this->_config['td']), MCRYPT_RAND);
+
         $source = serialize($source);
-        $ksize = mcrypt_enc_get_key_size($this->_td);
-        $key = substr($this->_key, 0, $ksize);
-        mcrypt_generic_init($this->_td, $key, $this->_iv);
+        $ksize = mcrypt_enc_get_key_size($this->_config['td']);
+        $key = substr($this->_config['key'], 0, $ksize);
+        mcrypt_generic_init($this->_config['td'], $key, $this->_config['iv']);
 
         $result = array(
-            'iv' => base64_encode($this->_iv),
-            'data' => base64_encode(mcrypt_generic($this->_td, $source))
+            base64_encode($this->_config['iv']),
+            base64_encode(mcrypt_generic($this->_config['td'], $source))
         );
 
         $this->close();
@@ -52,17 +62,17 @@ class CryptExtension {
     }
 
     public function decrypt($source) {
-        $source['iv'] = base64_decode($source['iv']);
-        $source['data'] = base64_decode($source['data']);
+        $source[0] = base64_decode($source[0]);
+        $source[1] = base64_decode($source[1]);
 
-        $this->_td = mcrypt_module_open($this->_method, '', 'ofb', '');
-        $this->_iv = $source['iv'];
+        $this->_config['td'] = mcrypt_module_open($this->_config['method'], '', 'ofb', '');
+        $this->_config['iv'] = $source[0];
 
-        $ksize = mcrypt_enc_get_key_size($this->_td);
-        $key = substr($this->_key, 0, $ksize);
-        mcrypt_generic_init($this->_td, $key, $this->_iv);
-        
-        $result = mdecrypt_generic($this->_td, $source['data']);
+        $ksize = mcrypt_enc_get_key_size($this->_config['td']);
+        $key = substr($this->_config['key'], 0, $ksize);
+        mcrypt_generic_init($this->_config['td'], $key, $this->_config['iv']);
+
+        $result = mdecrypt_generic($this->_config['td'], $source[1]);
         $result = unserialize($result);
 
         $this->close();
@@ -70,7 +80,7 @@ class CryptExtension {
     }
 
     private function close() {
-        mcrypt_generic_deinit($this->_td);
-        mcrypt_module_close($this->_td);
+        mcrypt_generic_deinit($this->_config['td']);
+        mcrypt_module_close($this->_config['td']);
     }
 }

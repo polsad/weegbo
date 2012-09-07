@@ -28,7 +28,7 @@ class Profiler {
             $time = round($time, 4);
         }
         self::$_data[] = array(round(microtime(true) - START_TIME, 4), round(memory_get_usage() / 1024, 2), $message, $time);
-        if (! isset(self::$_count[$type])) {
+        if (!isset(self::$_count[$type])) {
             self::$_count[$type] = 1;
         }
         else {

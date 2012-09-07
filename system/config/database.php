@@ -27,8 +27,8 @@ return array(
             'host' => 'localhost',
             'user' => 'root',
             'pass' => '',
-            'db' => 'dp',
-            'prefix' => 'src_',
+            'db' => '',
+            'prefix' => 'prfx_',
             'charset' => 'utf8'
         )
     )

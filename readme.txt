@@ -1,93 +1,72 @@
+0.8.15
+    Refactoring base/extension/* classes
+
 0.8.14
-    DB static перенесен в extension
-    Обновлены jQuery до 1.7.2 и HTMLPurfier до 4.4.0
-    Рефакторинг base/* классов
-    Уменьшено время загрузки
-    Полностью переработан Error + Extension классы
-    Добавлены debug levels
+    DB static class remade to extansion
+    Updated jQuery (version 1.7.2) & HTMLPurfier (version 4.4.0)
+    Refactoring base/* classes
+    Load time
+    Recoding Error & Extension classes
+    Add debug levels to config
 
 0.8.13
-    Добавлен метод rowCount - возращает число записей при INSERT, UPDATE, DELETE
-    Добавлена возможность соединения сразу с несколькими базами
+    Added rowCount method - return number of records for INSERT, UPDATE, DELETE queries
+    Added multiple connection for DB
 
 0.8.12
-    Переписан механизм загрузки helper 
+    Recoding Loader class (mechanism for loading helpers) 
+
 0.8.11
-    Обновлен jQuery до версии 1.7
-    В Input добавлен $_FILES
+    Updated jQuery (version 1.7)
+    В Input added $_FILES
 
 0.8.10
-    Добавил Profiler класс
+    Added Profiler class
     
 0.8.9
-    Сделал фикс для $_GET массива
-    Добавил поддержку нескольких баз в DB
+    Bugfix for $_GET
     
 0.8.8
-    Удалил input расширение, вместо него ввел статический класс input
+    Deleted input extension, added Input static class
     
 0.8.7
-    Inspire Framework больше не существует, привет Weegbo!
+    Inspire Framework is done. Hello Weegbo!
 
 0.8.6
-    - Minnor bugs
-    - Добавлен APC в cache extension
+    Minnor bugs
+    Added APC в cache extension
 
 0.8.5
-    - переписаны методы загрузки моделей, библиотек, расширений. Теперь все они используют
-    ReflectionClass
-    - в расширение cache добавлена поддержка apc
+    Recoding Loader class (methods for loading models, libs and extensions). Now using ReflectionClass
+
 0.8.4
-    -extension session - добавлен необязательный параметр $crossdomain, при передаче
-    домена, кука ставится для кросдомена
-    - в конфиг добавлен файл autoload - автоматическая загрузка компонентов
-    - изменен метод redirect в conltroller.class.php, теперь в редирект можно передавать
-      внешние урлы
-    - в base добавлен метод разбора домена (понадобился при организации name.host.xxx)
-    - обработаны некоторые notice
+    Recoding session extension (support crossdomain session)
+    Added config/autoload.php file - autoload components
+    Changed redirect method in base/conltroller.class.php, now support external urls
+    Added mrthod for split domain (for orgaization name.example.com)
+    Notice fix
 
 0.8.3
-    Сделаны правки в extensions pages, acl, file, validator
-    классах view, base, error
+    Bugfix for paging, acl, file, validator extensions. Bugfix for base, error, view static classes.
 
 0.8.2
-    Изменены exeptions на один класс GException
-    Изменене Error
+    Added GException exception.
+    Recoding Error static class.
+    
 0.8.1
-    Изменен input extension - xss
-    Image extension - thumb
-    Изменен валидатор
+    Add to input extension method for xss protection
+    Add to image extension method for thumb
+    Recoding for validator extension
+    
 0.8
-    Добавился класс Base - загрузчик приложения
-    Заменен механизм redirect() убрали $_SERVER['HTTP_REFERER']
+    Added base class
+    Recoding method redirect() in controller.class.php - deleted $_SERVER['HTTP_REFERER']
+
 0.7.1
-    Полностью переработан механизм ошибок (генерируются свои исключения)
-    Ошибки типа warning перехватываются и в зависимости от DEBUG либо сохраняются в лог,
-    либо выводятся на экран.
+    Recoding errors mechanism (now generated exception)
+
 0.7
     Новый виток (Highload)
-    1. Заменен Smarty на самописный View
-    2. Добавлен новый статический класс Error
-0.6.4
-    Добавлена библиотека для работы с базой данных
-    Интерфейс DbSimple, основана на PDO
-0.6.3
-    Добавлено расширение для логгирования
-    Переписан метод для загрузки библиотек, теперь кроме
-    $path, $library, $name можно передовать необязатльные параметры, которые
-    будут переданы в конструктор библиотеки
-0.6.2
- В расширении image исправлена обработка прозрачных файлов
-0.6.1
-1. Если URL_REPLACE == true, то при обращении контроллера к несуществующему методу
-   будет возращаться 404 ошибка
-0.6
-1. Добавлена документация PHPDocs
-2. Добавлен класс профайлер
-   Для профайлера изменены controller.class.php, index.php, config.php, dbsimple/Generic.php (метод _query)
-Версия 0.5
-1. Заменен механизм redirect() на сессию, $_SERVER['HTTP_REFERER'] не работает в IE
-2. В контроллер добавлен getParam()
-3. В extension input замменен метод getData
-4. Добавили paypal расширение
-5. В конфиге mime + в расширении file метод checkFileType
+    Deleted Smarty and added View static class
+    Added static Error class
+    Deleted DbSimple and added DB static class

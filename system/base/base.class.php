@@ -2,14 +2,9 @@
 /**
  * Base class file.
  *
- * Base класс подключает необходимые для работы классы (Config, Error, Exception,
- * Register и Loader), реализует функции роутера и подключает необходимый контроллер,
- * выводит статистику по работе приложения (время работы, потребляемая память,
- * количество запросов к БД, общая прододжительность запросов).
- *
  * @author Dmitry Avseyenko <polsad@gmail.com>
  * @link http://weegbo.com/
- * @copyright Copyright &copy; 2008-2011 Inspirativ
+ * @copyright Copyright &copy; 2008-2012 Inspirativ
  * @license http://weegbo.com/license/
  * @package system.base
  * @since 0.8
@@ -121,7 +116,7 @@ class Base {
     }
 
     /**
-     * Посылает заголовок с HTTP кодом
+     * Send header with HTTP code
      */
     public static function sendHttpCode($code) {
         if (self::$_http_codes === null) {
@@ -135,10 +130,10 @@ class Base {
     }
 
     /**
-     * Парсинг урла 
+     * URL parsing
      *
      * @access private
-     * @param array ссылка на массив значений
+     * @param array link on result array
      * @return string
      */
     private static function parseUrl(&$data) {
@@ -158,13 +153,13 @@ class Base {
     }
 
     /**
-     * Парсинг урла в случае если parse_url вернула false
+     * URL parsing, if  parse_url returned false
      *
      * @access private
      * @return string
      */
     private static function manualParseUrl() {
-        $res = array();
+        $res = $matches = array();
         preg_match_all("/([^.]+)\.?/", $_SERVER['HTTP_HOST'], $matches);
         $res['host'] = $matches[1];
         $res['path'] = $_SERVER['REQUEST_URI'];
@@ -174,11 +169,10 @@ class Base {
     }
 
     /**
-     * Метод заменяет исходный URL в соответствии с регулярным выражением.
+     * The method replaces the original URL, in accordance with the regular expression.
      *
      * @access private
-     * @param array $urls хэш с шаблонами и на что они будут заменяться
-     * @param string $url исходный URL по которому будет проводиться поиск
+     * @param string $url original URL
      * @return string
      */
     private static function replaceUrl($url) {
@@ -194,7 +188,7 @@ class Base {
     }
 
     /**
-     * Автозагрузка компонентов
+     * Autoload components
      */
     private static final function autoloadComponents() {
         /**

@@ -13,69 +13,73 @@ class AclExtension {
     /**
      * @var array roles
      */
-    private $rules = array();
+    private $_rules = array();
 
-    public function __construct() {
-        $this->rules = require(Config::get('path/config').'acl.php');
+    public function __construct($config = null) {
+        if ($config != null) {
+            $this->setConfig($config);
+        }
     }
 
-    public function isAllowed($role, $resource, $action = '') {
-        if ($action == '') {
-            return isset($this->rules[$role]['allow'][$resource]);
-        }
-        else {
-            if (isset($this->rules[$role]['allow'][$resource])) {
-                $list = $this->rules[$role]['allow'][$resource];
-                if ($list === '*')
-                    return true;
-                else
-                    return in_array($action, $list);
+    public function setConfig($config) {
+        if ($config != null) {
+            $isArray = is_array($config);
+            if ($isArray === false && file_exists(Config::get('path/config').$config)) {
+                $this->_rules = require(Config::get('path/config').$config);
             }
             else {
-                return false;
+                $this->_rules = $config;
             }
         }
     }
 
-    public function isDenied($role, $resource, $action = '') {
-        if ($action == '') {
-            return isset($this->rules[$role]['deny'][$resource]);
+    public function isAllowed($role, $resource) {
+        return $this->_checkRole('allow', $role, $resource);
+    }
+
+    public function isDenied($role, $resource) {
+        return $this->_checkRole('deny', $role, $resource);
+    }
+
+    public function checkAccess($role, $resource) {
+        $result = false;
+        if (isset($this->_rules[$role]['deny']) && !isset($this->_rules[$role]['allow'])) {
+            $result = $this->isDenied($role, $resource);
+        }
+        elseif (isset($this->_rules[$role]['allow']) && !isset($this->_rules[$role]['deny'])) {
+            $result = $this->isAllowed($role, $resource);
+        }
+        elseif ($this->_rules[$role]['deny'] === '*') {
+            $result = $this->isAllowed($role, $resource);
+        }
+        elseif ($this->_rules[$role]['allow'] === '*') {
+            $result = $this->isDenied($role, $resource);
         }
         else {
-            if (isset($this->rules[$role]['deny'][$resource])) {
-                $list = $this->rules[$role]['deny'][$resource];
-                if ($list === '*')
-                    return true;
-                else
-                    return in_array($action, $list);
+            if ($this->isDenied($role, $resource)) {
+                $result = false;
+            }
+            elseif ($this->isAllowed($role, $resource)) {
+                $result = true;
+            }
+        }
+        return $result;
+    }
+
+    private function _checkRole($type, $role, $resource) {
+        $result = false;
+        if (isset($this->_rules[$role][$type])) {
+            if (is_array($this->_rules[$role][$type])) {
+                if (array_search($resource, $this->_rules[$role][$type]) !== false) {
+                    $result = true;
+                }
             }
             else {
-                return false;
+                if ($this->_rules[$role][$type] === '*' || $this->_rules[$role][$type] === $resource) {
+                    $result = true;
+                }
             }
         }
-    }
-
-    public function checkAccess($role, $resource, $action = '') {
-        if ($this->rules[$role]['deny'][$resource] === '*') {
-            if ($this->isAllowed($role, $resource, $action)) {
-                return true;
-            }
-            return false;
-        }
-        elseif ($this->rules[$role]['allow'][$resource] === '*') {
-            if ($this->isDenied($role, $resource, $action)) {
-                return false;
-            }
-            return true;
-        }
-        else {
-            if ($this->isDenied($role, $resource, $action)) {
-                return false;
-            }
-            elseif ($this->isAllowed($role, $resource, $action)) {
-                return true;
-            }
-        }
-        return false;
+        return $result;
     }
 }

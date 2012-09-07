@@ -26,12 +26,12 @@ class SessionExtension {
         /**
          * Init session and create 'session' array
          */
+        $this->_name = Config::get('app/session-name');
         if (!isset($_SESSION)) {
             if (null != $subdomains) {
                 session_set_cookie_params('Session', '/', '.'.$subdomains);
             }
             session_start();
-            $this->_name = Config::get('app/session-name');
         }
         if (!isset($_SESSION[$this->_name])) {
             $_SESSION[$this->_name] = array();
@@ -71,6 +71,23 @@ class SessionExtension {
      */
     public function delete($name) {
         unset($_SESSION[$this->_name][$name]);
+    }
+
+    /**
+     * Set or get session ID
+     * 
+     * @access public
+     * @param type $sid
+     * @return string 
+     */
+    public function sessionId($sid = '') {
+        if ($sid == '') {
+            $sid = session_id();
+        }
+        else {
+            session_id($sid);
+        }
+        return $sid;
     }
 
     /**

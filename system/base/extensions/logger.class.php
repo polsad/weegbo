@@ -11,17 +11,13 @@
  */
 class LoggerExtension {
     /**
-     * @var string path to log file
-     */
-    private $_file = 'log.txt';
-    /**
      * @var resource log file resource
      */
-    private $_resource = null;
-    /**
-     * @var string date format
-     */
-    private $_date_format = 'Y-m-d H:i:s';
+    private $_file = null;
+    private $_config = array(
+        'file' => 'log.txt',
+        'date-format' => 'D M j G:i:s Y'
+    );
 
     /**
      * Open log file.
@@ -29,9 +25,9 @@ class LoggerExtension {
      * @access public
      * @return void
      */
-    public function __construct($log_path) {
-        $this->_file = $log_path;
-        $this->_resource = fopen($this->_file, 'a+');
+    public function __construct($config = null) {
+        $this->setConfig($config);
+        $this->init();
     }
 
     /**
@@ -41,8 +37,25 @@ class LoggerExtension {
      * @return void
      */
     public function __destruct() {
-        if (null != $this->_resource) {
-            fclose($this->_resource);
+        $this->close();
+    }
+
+    public function init() {
+        $this->close();
+        $this->_file = fopen($this->_config['file'], 'a+');
+    }
+
+    public function setConfig($config) {
+        if ($config !== null && is_array($config) == true) {
+            foreach ($this->_config as $k => $v) {
+                $this->_config[$k] = (array_key_exists($k, $config) === false) ? $v : $config[$k];
+            }
+        }
+    }
+
+    public function close() {
+        if (null !== $this->_file) {
+            fclose($this->_file);
         }
     }
 
@@ -53,32 +66,12 @@ class LoggerExtension {
      * @param string $message message
      * @return void
      */
-    public function setMessage($message) {
-        if ($this->_resource) {
-            $message = '['.date($this->_date_format).'] '.$message."\n";
-            flock($this->_resource, LOCK_EX);
-            fwrite($this->_resource, $message);
-            flock($this->_resource, LOCK_UN);
-        }
-    }
-
-    /**
-     * Set new log file.
-     *
-     * @access public
-     * @param string $log_path path to log file
-     * @return void
-     */
-    public function setLogFile($log_path) {
-        $this->_file = $log_path;
-        if (null != $this->_resource) {
-            fclose($this->_resource);
-        }
-        if (file_exists($this->_file)) {
-            $this->_resource = fopen($this->_file, 'a+');
-        }
-        else {
-            $this->_resource = null;
+    public function add($message) {
+        if (null !== $this->_file) {
+            $data = date($this->_config['date-format']);
+            flock($this->_file, LOCK_EX);
+            fwrite($this->_file, "[{$data}] {$message}\n");
+            flock($this->_file, LOCK_UN);
         }
     }
 }

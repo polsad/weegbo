@@ -10,5 +10,5 @@
  */
 return array(
     'name' => 'Weegbo Framework',
-    'version' => '0.8.14',
+    'version' => '0.8.15',
 );

@@ -49,8 +49,7 @@ class Input {
      * @return mixed
      */
     public static function checkData($key, $true, $false, $index) {
-        $value = isset(self::$_data[$index][$key]) ? $true : $false;
-        return $value;
+        return isset(self::$_data[$index][$key]) ? $true : $false;
     }
 
     /**

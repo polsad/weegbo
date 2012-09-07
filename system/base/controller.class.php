@@ -2,7 +2,7 @@
 /**
  * Controller class file.
  *
- * Родительский класс для контроллеров.
+ * Parent controller.
  *
  * @author Dmitry Avseyenko <polsad@gmail.com>
  * @link http://weegbo.com/
@@ -81,7 +81,7 @@ abstract class Controller {
         if ($code !== null) {
             Base::sendHttpCode($code);
         }
-        if (!preg_match('#^(https?|ftp)://#', $url, $match)) {
+        if (!preg_match('#^(https?|ftp)://#', $url)) {
             $url = Config::get('path/host').ltrim($url, '/');
         }
         Header('Location: '.$url);
