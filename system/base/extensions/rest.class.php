@@ -22,6 +22,9 @@ class RestExtension {
     private $_response_body = null;
 
     public function __construct($config = null) {
+        if (!extension_loaded('curl')) {
+            throw new CException('Rest requires PHP curl extension to be loaded', 500);
+        }
         $this->setConfig($config);
     }
 

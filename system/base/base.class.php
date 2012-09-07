@@ -207,13 +207,14 @@ class Base {
                 foreach ($autoload[$k] as $l => $m) {
                     if (is_array($m)) {
                         foreach ($m as $alias => $params) {
-                            $vals = array($l, $alias, $params);
+                            $vals = (is_array($params)) ? array($l, $alias, $params) : array($l, $params);
+                            call_user_func_array("Loader::$v", $vals);
                         }
                     }
                     else {
                         $vals = array($l, $m);
+                        call_user_func_array("Loader::$v", $vals);
                     }
-                    call_user_func_array("Loader::$v", $vals);
                 }
             }
         }

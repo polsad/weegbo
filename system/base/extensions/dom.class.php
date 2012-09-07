@@ -32,6 +32,9 @@ class DomExtension {
      * @return void
      */
     public function __construct($version = '1.0', $encoding = 'UTF-8') {
+        if (!extension_loaded('dom')) {
+            throw new CException('DOM requires PHP DOM extension to be loaded', 500);
+        }         
         $this->_dom = new DOMDocument($version, $encoding);
     }
 

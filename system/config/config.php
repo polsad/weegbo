@@ -34,15 +34,8 @@ return array(
                 'view' => 'view'
             ),
             'extensions' => array(
-                'cache' => array(
-                    'cache' => array(
-                        'driver' => 'file',
-                        'server' => array('host' => '', 'port' => '')
-                    )
-                )
             ),
             'models' => array(
-                'main' => 'main'
             )
         ),
         'ob-gzip' => false,

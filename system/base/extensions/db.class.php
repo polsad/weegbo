@@ -71,6 +71,9 @@ class DbExtension {
      * @return void
      */
     public function __construct($config = null) {
+        if (!extension_loaded('PDO')) {
+            throw new CException('Db requires PHP PDO extension to be loaded', 500);
+        }
         $this->init($config);
     }
 

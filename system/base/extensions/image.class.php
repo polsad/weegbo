@@ -18,6 +18,12 @@ class ImageExtension {
      */
     private $_jpgQuality = 90;
 
+    public function __construct() {
+        if (!extension_loaded('gd')) {
+            throw new CException('Image requires PHP gd extension to be loaded', 500);
+        }
+    }
+    
     /**
      * Set jpeg quality
      *

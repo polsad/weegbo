@@ -16,21 +16,17 @@ class MemcacheCache implements ICache {
     private $_server = null;
 
     public function __construct($config) {
-        echo '<pre>'; print_r($config); echo '</pre>';
-        
-        if (!extension_loaded('memcache_add_server')) {
+        if (!extension_loaded('memcache')) {
             throw new CException("MemcacheCache requires PHP memcache extension to be loaded", 500);
         }
-        else {
-            if (!is_array(Config::get('app/cache/server'))) {
-                throw new CException("Can't load server configuration", 500);
-            }
-            $this->_server = new Memcache;
-            foreach ((array) Config::get('app/cache/server') as $server) {
-                $host = ($server['host'] == '') ? 'localhost' : $server['host'];
-                $port = ($server['port'] == '') ? ini_get('memcache.default_port') : $server['port'];
-                $this->_server->addServer($host, $port);
-            }
+        if (false === is_array($config['server']) && sizeof($config['server']) == 0) {
+            throw new CException("Can't find server configuration in config", 500);
+        }
+        $this->_server = new Memcache;
+        foreach ($config['server'] as $v) {
+            $host = (isset($v['host']) && $v['host'] != '') ? $v['host'] : 'localhost';
+            $port = (isset($v['port']) && $v['port'] != '') ? $v['port'] : ini_get('memcache.default_port');
+            $this->_server->addServer($host, $port);
         }
     }
 
@@ -42,6 +38,7 @@ class MemcacheCache implements ICache {
 
     public function get($key) {
         $data = $this->_server->get($key);
+        return $data;
     }
 
     public function set($key, $expire, $data) {

@@ -38,6 +38,9 @@ class FtpExtension {
     private $_connect = null;
 
     public function __construct($config = null) {
+        if (!extension_loaded('ftp')) {
+            throw new CException('Ftp requires PHP ftp extension to be loaded', 500);
+        }    
         $this->setConfig($config);
         if ($this->_config['auto-connect'] === true) {
             $this->init();
