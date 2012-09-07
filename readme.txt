@@ -66,7 +66,6 @@
     Recoding errors mechanism (now generated exception)
 
 0.7
-    Новый виток (Highload)
     Deleted Smarty and added View static class
     Added static Error class
     Deleted DbSimple and added DB static class
