@@ -89,13 +89,14 @@ class Base {
         /**
          * Detect controller name
          */
-        $cname = isset($data['uri'][0]) ? strtolower(trim($data['uri'][0])) : Config::get('app/default-controller');
-        $cname = empty($cname) ? Config::get('app/default-controller') : $cname;
+        $cname = isset($data['uri'][0]) ? strtolower(trim($data['uri'][0])) : Config::get('app/default/controller');
+        $cname = empty($cname) ? Config::get('app/default/controller') : $cname;
         /**
          * Detect action
          */
         $action = isset($data['uri'][1]) ? strtolower(trim($data['uri'][1])) : '';
-        $action = empty($action) ? 'index' : $action;
+        $action = ($action == null) ? Config::get('app/default/method') : $action;
+        $action = ($action == null) ? 'index' : $action;
         $data['uri'] = array_slice($data['uri'], 2);
         /**
          * Init input data

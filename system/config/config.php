@@ -27,7 +27,10 @@ return array(
      * app/session-name - session name
      */
     'app' => array(
-        'default-controller' => 'main',
+        'default' => array(
+            'controller' => 'main',
+            'method' => 'index'
+        ),
         'router' => true,
         'autoload' => array(
             'base' => array(

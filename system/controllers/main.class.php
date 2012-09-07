@@ -16,7 +16,6 @@ class MainController extends Controller {
     }
 
     public function index() {
-phpinfo();       
-// $this->displayPage('pages/index.tpl');
+        $this->displayPage('pages/index.tpl');
     }
 }
