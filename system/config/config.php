@@ -34,9 +34,6 @@ return array(
                 'view' => 'view'
             ),
             'extensions' => array(
-                'db' => array(
-                    'db' => 'master'
-                ),
                 'cache' => array(
                     'cache' => array(
                         'driver' => 'file',
