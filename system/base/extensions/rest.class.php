@@ -36,6 +36,10 @@ class RestExtension {
         }
     }
 
+    public function getConfig() {
+        return $this->_config;
+    }
+    
     public function sendRequest($url, $method, $data = null) {
         /**
          * Set URL
@@ -95,6 +99,13 @@ class RestExtension {
 
     public function getResponseBody() {
         return $this->_response_body;
+    }
+
+    public function checkAuth() {
+        $user = isset($_SERVER['PHP_AUTH_USER']) ? $_SERVER['PHP_AUTH_USER'] : '';
+        $password = isset($_SERVER['PHP_AUTH_PW']) ? $_SERVER['PHP_AUTH_PW'] : '';
+        $result = ($user == $this->_config['user'] && $password == $this->_config['password']) ? true : false;
+        return $result;
     }
 
     private function _initConfig() {
