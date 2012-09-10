@@ -113,7 +113,7 @@ class RestExtension {
         curl_setopt($this->_ch, CURLOPT_TIMEOUT, $this->_config['timeout']);
         curl_setopt($this->_ch, CURLOPT_RETURNTRANSFER, true);
         if ($this->_config['user'] != '' || $this->_config['password'] != '') {
-            curl_setopt($this->_ch, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
+            curl_setopt($this->_ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
             curl_setopt($this->_ch, CURLOPT_USERPWD, $this->_config['user'].':'.$this->_config['password']);
         }
         if ($this->_config['ssl'] === true) {
