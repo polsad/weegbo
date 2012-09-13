@@ -296,7 +296,7 @@ class DbExtension {
         $this->_query_args = array_slice($args, 1);
 
         $regexp = '{(\?)( [dsafn\#] ?)}sx';
-        $this->_query = preg_replace_callback($regexp, array('self', 'expandPlaceholders'), $this->_query);
+        $this->_query = preg_replace_callback($regexp, array('this', '_expandPlaceholders'), $this->_query);
     }
 
     /**
