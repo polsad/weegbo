@@ -34,7 +34,7 @@ class Input {
     public static function initData($data) {
         self::$_data = $data;
         if (function_exists('get_magic_quotes_gpc') && get_magic_quotes_gpc()) {
-            $this->_stripSlashes();
+            self::_stripSlashes();
         }
     }
 
